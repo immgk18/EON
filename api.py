@@ -1,271 +1,199 @@
 """
 EON API
 =======
-EON web interface and API server.
+Secure API and web interface backend for EON.
 """
 
 import os
 import secrets
-from pathlib import Path
 
-from flask import Flask, jsonify, request, send_from_directory
+from fastapi import FastAPI, Header, HTTPException
+from fastapi.responses import HTMLResponse
+from pydantic import BaseModel
 
 from core.eon import EON
 
 
-class EONAPI:
-    """Web API wrapper for EON."""
+# ============================================================
+# APP
+# ============================================================
 
-    def __init__(self):
-        self.app = Flask(__name__)
+app = FastAPI(
+    title="EON API",
+    version="1.0",
+    description="Executive Orchestration Network"
+)
 
-        self.base_dir = Path(__file__).resolve().parent
-        self.eon = EON()
 
-        self._register_routes()
+# ============================================================
+# EON CORE
+# ============================================================
 
-    # =====================================================
-    # AUTHENTICATION
-    # =====================================================
+eon = EON()
 
-    def authenticate(self):
-        expected_token = os.getenv(
-            "EON_API_TOKEN",
-            ""
+
+# ============================================================
+# SECURITY
+# ============================================================
+
+API_TOKEN = os.getenv("EON_API_TOKEN", "").strip()
+
+
+def verify_token(
+    x_eon_token: str | None = Header(default=None)
+):
+    """
+    Verify the EON API token.
+    """
+
+    if not API_TOKEN:
+        raise HTTPException(
+            status_code=503,
+            detail="EON_API_TOKEN is not configured on the server."
         )
 
-        supplied_token = request.headers.get(
-            "X-EON-Token",
-            ""
+    if not x_eon_token:
+        raise HTTPException(
+            status_code=401,
+            detail="Authentication required."
         )
 
-        if not expected_token:
-            return False
-
-        return secrets.compare_digest(
-            supplied_token,
-            expected_token
+    if not secrets.compare_digest(
+        x_eon_token.strip(),
+        API_TOKEN
+    ):
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid EON API token."
         )
 
-    # =====================================================
-    # ROUTES
-    # =====================================================
+    return True
 
-    def _register_routes(self):
 
-        @self.app.route("/", methods=["GET"])
-        def home():
+# ============================================================
+# REQUEST MODEL
+# ============================================================
 
-            return send_from_directory(
-                self.base_dir,
-                "index.html"
+class CommandRequest(BaseModel):
+    command: str
+
+
+# ============================================================
+# BASIC API
+# ============================================================
+
+@app.get("/api")
+def api_home():
+    return {
+        "success": True,
+        "name": "EON API",
+        "status": "ONLINE",
+        "version": "1.0",
+        "authentication": "TOKEN_REQUIRED"
+    }
+
+
+@app.get("/api/health")
+def health():
+    return {
+        "success": True,
+        "status": "ONLINE"
+    }
+
+
+# ============================================================
+# STATUS
+# ============================================================
+
+@app.get("/api/status")
+def get_status(
+    x_eon_token: str | None = Header(default=None)
+):
+    verify_token(x_eon_token)
+
+    try:
+        status = eon.status()
+    except Exception as error:
+        status = {
+            "status": "ONLINE",
+            "error": str(error)
+        }
+
+    return {
+        "success": True,
+        "eon": status
+    }
+
+
+# ============================================================
+# COMMAND
+# ============================================================
+
+@app.post("/api/command")
+def execute_command(
+    request: CommandRequest,
+    x_eon_token: str | None = Header(default=None)
+):
+    verify_token(x_eon_token)
+
+    command = request.command.strip()
+
+    if not command:
+        raise HTTPException(
+            status_code=400,
+            detail="Command cannot be empty."
+        )
+
+    if len(command) > 2000:
+        raise HTTPException(
+            status_code=400,
+            detail="Command is too long."
+        )
+
+    try:
+        response = eon.handle_command(command)
+
+        return {
+            "success": True,
+            "command": command,
+            "response": str(response)
+        }
+
+    except Exception as error:
+        return {
+            "success": False,
+            "command": command,
+            "response": f"EON encountered an error: {error}"
+        }
+
+
+# ============================================================
+# WEB INTERFACE
+# ============================================================
+
+@app.get("/", response_class=HTMLResponse)
+def interface():
+    """
+    The main EON interface.
+    """
+
+    try:
+        with open("index.html", "r", encoding="utf-8") as file:
+            return HTMLResponse(
+                content=file.read(),
+                status_code=200
             )
 
-        # -------------------------------------------------
-        # API INFO
-        # -------------------------------------------------
-
-        @self.app.route("/api", methods=["GET"])
-        def api_info():
-
-            return jsonify({
-                "success": True,
-                "name": "EON API",
-                "system": "EON",
-                "version": "1.0",
-                "status": "ONLINE",
-                "authentication": "TOKEN_REQUIRED"
-            })
-
-        # -------------------------------------------------
-        # HEALTH
-        # -------------------------------------------------
-
-        @self.app.route(
-            "/api/health",
-            methods=["GET"]
+    except FileNotFoundError:
+        return HTMLResponse(
+            content="""
+            <html>
+                <body style="background:#000;color:#ffd84d;
+                font-family:Arial;text-align:center;padding-top:20%;">
+                    <h1>EON</h1>
+                    <p>index.html not found.</p>
+                </body>
+            </html>
+            """,
+            status_code=404
         )
-        def health():
-
-            return jsonify({
-                "success": True,
-                "service": "EON",
-                "status": "ONLINE"
-            })
-
-        # -------------------------------------------------
-        # STATUS
-        # -------------------------------------------------
-
-        @self.app.route(
-            "/api/status",
-            methods=["GET"]
-        )
-        def status():
-
-            if not self.authenticate():
-
-                return jsonify({
-                    "success": False,
-                    "error": "Authentication required."
-                }), 401
-
-            try:
-
-                return jsonify({
-                    "success": True,
-                    "status": "ONLINE",
-                    "eon": self.eon.status()
-                })
-
-            except Exception as error:
-
-                return jsonify({
-                    "success": False,
-                    "error": str(error)
-                }), 500
-
-        # -------------------------------------------------
-        # COMMAND
-        # -------------------------------------------------
-
-        @self.app.route(
-            "/api/command",
-            methods=["POST"]
-        )
-        def command():
-
-            if not self.authenticate():
-
-                return jsonify({
-                    "success": False,
-                    "error": "Authentication required."
-                }), 401
-
-            data = request.get_json(
-                silent=True
-            )
-
-            if not isinstance(data, dict):
-
-                return jsonify({
-                    "success": False,
-                    "error": "JSON request body required."
-                }), 400
-
-            user_command = data.get(
-                "command",
-                ""
-            )
-
-            if not isinstance(
-                user_command,
-                str
-            ):
-
-                return jsonify({
-                    "success": False,
-                    "error": "Command must be text."
-                }), 400
-
-            user_command = user_command.strip()
-
-            if not user_command:
-
-                return jsonify({
-                    "success": False,
-                    "error": "Command cannot be empty."
-                }), 400
-
-            if len(user_command) > 2000:
-
-                return jsonify({
-                    "success": False,
-                    "error": "Command is too long."
-                }), 400
-
-            try:
-
-                result = self.eon.handle_command(
-                    user_command
-                )
-
-                return jsonify({
-                    "success": True,
-                    "command": user_command,
-                    "response": result
-                })
-
-            except Exception as error:
-
-                return jsonify({
-                    "success": False,
-                    "error": str(error)
-                }), 500
-
-        # -------------------------------------------------
-        # MODULES
-        # -------------------------------------------------
-
-        @self.app.route(
-            "/api/modules",
-            methods=["GET"]
-        )
-        def modules():
-
-            if not self.authenticate():
-
-                return jsonify({
-                    "success": False,
-                    "error": "Authentication required."
-                }), 401
-
-            try:
-
-                return jsonify({
-                    "success": True,
-                    "modules":
-                        self.eon.router.get_available_modules()
-                })
-
-            except Exception as error:
-
-                return jsonify({
-                    "success": False,
-                    "error": str(error)
-                }), 500
-
-    # =====================================================
-    # RUN SERVER
-    # =====================================================
-
-    def run(self):
-
-        port = int(
-            os.getenv(
-                "PORT",
-                "10000"
-            )
-        )
-
-        self.app.run(
-            host="0.0.0.0",
-            port=port
-        )
-
-
-# =========================================================
-# APPLICATION INSTANCE
-# =========================================================
-
-eon_api = EONAPI()
-
-app = eon_api.app
-
-
-# =========================================================
-# DIRECT START
-# =========================================================
-
-if __name__ == "__main__":
-    eon_api.run()
