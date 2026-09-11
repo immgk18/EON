@@ -7,6 +7,7 @@ EON Web API
 """
 
 import os
+import traceback
 from pathlib import Path
 
 import uvicorn
@@ -151,7 +152,9 @@ class EONAPI:
 
                 return {
                     "success": False,
-                    "error": str(error)
+                    "error": str(error),
+                    "type": type(error).__name__,
+                    "traceback": traceback.format_exc()
                 }
 
 
@@ -205,9 +208,15 @@ class EONAPI:
 
             except Exception as error:
 
+                # ------------------------------------------------
+                # TEMPORARY DIAGNOSTIC INFORMATION
+                # ------------------------------------------------
+
                 return {
                     "success": False,
-                    "error": str(error)
+                    "error": str(error),
+                    "type": type(error).__name__,
+                    "traceback": traceback.format_exc()
                 }
 
 
@@ -236,7 +245,9 @@ class EONAPI:
 
                 return {
                     "success": False,
-                    "error": str(error)
+                    "error": str(error),
+                    "type": type(error).__name__,
+                    "traceback": traceback.format_exc()
                 }
 
 
@@ -264,13 +275,15 @@ class EONAPI:
 
                 return {
                     "success": False,
-                    "error": str(error)
+                    "error": str(error),
+                    "type": type(error).__name__,
+                    "traceback": traceback.format_exc()
                 }
 
 
-    # ========================================================
+    # ============================================================
     # SERVER
-    # ========================================================
+    # ============================================================
 
     def run(self):
 
