@@ -1,12 +1,12 @@
 """
 EON Router
 ==========
-Determines which EON subsystem should handle a command.
+Intent-based routing layer for EON.
 """
 
 
 class Router:
-    """EON's command routing system."""
+    """Routes user requests to the correct EON subsystem."""
 
     def __init__(self):
         self.routes = {
@@ -22,10 +22,12 @@ class Router:
                 "image",
                 "picture",
                 "photo",
+                "screenshot",
                 "screen",
                 "see",
                 "look",
                 "visual",
+                "analyze this image",
             ],
 
             "web": [
@@ -36,6 +38,7 @@ class Router:
                 "latest",
                 "news",
                 "weather",
+                "look up",
             ],
 
             "computer": [
@@ -44,8 +47,8 @@ class Router:
                 "application",
                 "app",
                 "open",
-                "close",
                 "launch",
+                "close",
             ],
 
             "memory": [
@@ -53,6 +56,7 @@ class Router:
                 "memory",
                 "recall",
                 "forget",
+                "what did i tell you",
             ],
 
             "tasks": [
@@ -61,6 +65,7 @@ class Router:
                 "schedule",
                 "todo",
                 "remind",
+                "organize",
             ],
 
             "files": [
@@ -69,54 +74,109 @@ class Router:
                 "document",
                 "pdf",
                 "read file",
+                "open file",
             ],
 
             "agents": [
                 "agent",
                 "research",
+                "researcher",
+                "coding",
+                "code",
                 "analyze",
                 "analysis",
-                "coding",
+            ],
+
+            "tools": [
+                "calculator",
+                "calculate",
+                "tool",
             ],
         }
 
-    def route(self, command: str) -> str:
-        """
-        Determine the most suitable module for a command.
-        """
+    def route(self, command):
+        """Determine which subsystem should handle a command."""
 
         if not command:
             return "brain"
 
-        command_lower = command.lower()
+        command_lower = command.lower().strip()
 
-        # Check every registered module
+        # Check for exact system commands first.
+        if command_lower in {
+            "hello",
+            "hi",
+            "hey",
+            "status",
+            "help",
+            "who are you",
+        }:
+            return "brain"
+
+        # Find the best matching module.
+        matches = []
+
         for module, keywords in self.routes.items():
 
             for keyword in keywords:
 
                 if keyword in command_lower:
-                    return module
+                    matches.append(
+                        (
+                            len(keyword),
+                            module
+                        )
+                    )
 
-        # If no specific module matches,
-        # send the request to EON's brain.
-        return "brain"
+        if not matches:
+            return "brain"
+
+        # Prefer the most specific/longest matching phrase.
+        matches.sort(
+            key=lambda item: item[0],
+            reverse=True
+        )
+
+        return matches[0][1]
 
     def get_available_modules(self):
-        """Return all registered EON modules."""
+        """Return all registered routing modules."""
 
         return list(self.routes.keys())
 
-    def add_route(self, module: str, keywords: list):
-        """Add a new module to the routing system."""
+    def get_keywords(self, module):
+        """Return keywords associated with a module."""
+
+        return self.routes.get(module, [])
+
+    def add_route(self, module, keywords):
+        """Add or update a module route."""
 
         if not module:
-            return
+            return False
+
+        if not isinstance(keywords, list):
+            return False
 
         self.routes[module] = keywords
 
-    def remove_route(self, module: str):
-        """Remove a module from the routing system."""
+        return True
 
-        if module in self.routes:
-            del self.routes[module]
+    def remove_route(self, module):
+        """Remove a routing module."""
+
+        if module not in self.routes:
+            return False
+
+        del self.routes[module]
+
+        return True
+
+    def status(self):
+        """Return router status."""
+
+        return {
+            "status": "ONLINE",
+            "modules": len(self.routes),
+            "available_modules": self.get_available_modules(),
+        }
