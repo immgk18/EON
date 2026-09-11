@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: eon-core
+    runtime: python
+
+    buildCommand: pip install -r requirements.txt
+
+    startCommand: python render_start.py
+
+    envVars:
+      - key: EON_MODE
+        value: NORMAL
+
+      - key: DEBUG
+        value: "false"
+
+      - key: EON_API_TOKEN
+        generateValue: true
