@@ -3,15 +3,14 @@ EON
 ===
 Executive Orchestration Network
 
-EON Web API + Browser Interface
+EON Web API
 """
 
 import os
-import secrets
 from pathlib import Path
 
 import uvicorn
-from fastapi import FastAPI, Header, HTTPException
+from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
@@ -23,16 +22,24 @@ from core.eon import EON
 # ============================================================
 
 BASE_DIR = Path(__file__).resolve().parent
+
 INDEX_FILE = BASE_DIR / "index.html"
 
-API_TOKEN = os.getenv("EON_API_TOKEN", "").strip()
+HOST = os.getenv(
+    "EON_API_HOST",
+    "0.0.0.0"
+)
 
-HOST = os.getenv("EON_API_HOST", "0.0.0.0")
-PORT = int(os.getenv("PORT", "5000"))
+PORT = int(
+    os.getenv(
+        "PORT",
+        "5000"
+    )
+)
 
 
 # ============================================================
-# REQUEST MODELS
+# REQUEST MODEL
 # ============================================================
 
 class CommandRequest(BaseModel):
@@ -40,65 +47,28 @@ class CommandRequest(BaseModel):
 
 
 # ============================================================
-# EON API CLASS
+# EON API
 # ============================================================
 
 class EONAPI:
     """
     Main EON API controller.
-
-    This class exists so Render's startup file can safely import:
-
-        from api import EONAPI
     """
 
     def __init__(self):
+
         self.eon = EON()
 
         self.app = FastAPI(
             title="EON",
-            description="Executive Orchestration Network",
+            description=(
+                "Executive Orchestration Network"
+            ),
             version="4.0",
         )
 
         self._register_routes()
 
-    # ========================================================
-    # AUTHENTICATION
-    # ========================================================
-
-    def authenticate(self, token):
-        """
-        Verify the EON API token.
-        """
-
-        if not API_TOKEN:
-            return False
-
-        if not token:
-            return False
-
-        return secrets.compare_digest(
-            str(token),
-            str(API_TOKEN),
-        )
-
-    def require_auth(self, token):
-        """
-        Protect EON control endpoints.
-        """
-
-        if not API_TOKEN:
-            raise HTTPException(
-                status_code=503,
-                detail="EON API token is not configured.",
-            )
-
-        if not self.authenticate(token):
-            raise HTTPException(
-                status_code=401,
-                detail="Invalid EON API token.",
-            )
 
     # ========================================================
     # ROUTES
@@ -107,27 +77,29 @@ class EONAPI:
     def _register_routes(self):
 
         # ----------------------------------------------------
-        # ROOT / BROWSER INTERFACE
+        # EON INTERFACE
         # ----------------------------------------------------
 
         @self.app.get("/")
         async def home():
 
             if not INDEX_FILE.exists():
-                return {
-                    "success": False,
-                    "name": "EON",
-                    "status": "ONLINE",
-                    "error": "index.html not found.",
-                }
+
+                raise HTTPException(
+                    status_code=404,
+                    detail=(
+                        "index.html was not found."
+                    )
+                )
 
             return FileResponse(
                 INDEX_FILE,
-                media_type="text/html",
+                media_type="text/html"
             )
 
+
         # ----------------------------------------------------
-        # HEALTH
+        # HEALTH CHECK
         # ----------------------------------------------------
 
         @self.app.get("/health")
@@ -136,8 +108,9 @@ class EONAPI:
             return {
                 "success": True,
                 "status": "ONLINE",
-                "system": "EON",
+                "system": "EON"
             }
+
 
         # ----------------------------------------------------
         # API INFORMATION
@@ -149,66 +122,72 @@ class EONAPI:
             return {
                 "success": True,
                 "name": "EON",
-                "system": "Executive Orchestration Network",
+                "system": (
+                    "Executive Orchestration Network"
+                ),
                 "version": "4.0",
                 "status": "ONLINE",
-                "authentication": (
-                    "CONFIGURED"
-                    if API_TOKEN
-                    else "NOT_CONFIGURED"
-                ),
+                "authentication": "DISABLED"
             }
 
+
         # ----------------------------------------------------
-        # STATUS
+        # EON STATUS
         # ----------------------------------------------------
 
         @self.app.get("/api/status")
-        async def status(
-            x_eon_token: str | None = Header(default=None),
-        ):
-
-            self.require_auth(x_eon_token)
+        async def status():
 
             try:
 
+                result = self.eon.status()
+
                 return {
                     "success": True,
-                    "status": self.eon.status(),
+                    "status": result
                 }
 
             except Exception as error:
 
                 return {
                     "success": False,
-                    "error": str(error),
+                    "error": str(error)
                 }
 
+
         # ----------------------------------------------------
-        # COMMAND
+        # EON COMMAND
         # ----------------------------------------------------
 
         @self.app.post("/api/command")
         async def command(
-            request: CommandRequest,
-            x_eon_token: str | None = Header(default=None),
+            request: CommandRequest
         ):
 
-            self.require_auth(x_eon_token)
+            command_text = (
+                request.command.strip()
+            )
 
-            command_text = request.command.strip()
 
             if not command_text:
+
                 raise HTTPException(
                     status_code=400,
-                    detail="Command cannot be empty.",
+                    detail=(
+                        "Command cannot be empty."
+                    )
                 )
 
+
             if len(command_text) > 2000:
+
                 raise HTTPException(
                     status_code=400,
-                    detail="Command is too long.",
+                    detail=(
+                        "Command is too long."
+                    )
                 )
+
 
             try:
 
@@ -216,92 +195,94 @@ class EONAPI:
                     command_text
                 )
 
+
                 return {
                     "success": True,
                     "command": command_text,
-                    "response": result,
+                    "response": result
                 }
+
 
             except Exception as error:
 
                 return {
                     "success": False,
-                    "error": str(error),
+                    "error": str(error)
                 }
 
+
         # ----------------------------------------------------
-        # MODULES
+        # AVAILABLE MODULES
         # ----------------------------------------------------
 
         @self.app.get("/api/modules")
-        async def modules(
-            x_eon_token: str | None = Header(default=None),
-        ):
-
-            self.require_auth(x_eon_token)
+        async def modules():
 
             try:
 
+                available_modules = (
+                    self.eon.router
+                    .get_available_modules()
+                )
+
+
                 return {
                     "success": True,
-                    "modules": (
-                        self.eon.router
-                        .get_available_modules()
-                    ),
+                    "modules": available_modules
                 }
+
 
             except Exception as error:
 
                 return {
                     "success": False,
-                    "error": str(error),
+                    "error": str(error)
                 }
 
+
         # ----------------------------------------------------
-        # RESET
+        # RESET SESSION
         # ----------------------------------------------------
 
         @self.app.post("/api/reset")
-        async def reset(
-            x_eon_token: str | None = Header(default=None),
-        ):
-
-            self.require_auth(x_eon_token)
+        async def reset():
 
             try:
 
                 self.eon.context.clear()
 
+
                 return {
                     "success": True,
-                    "message": "EON session reset.",
+                    "message": (
+                        "EON session reset."
+                    )
                 }
+
 
             except Exception as error:
 
                 return {
                     "success": False,
-                    "error": str(error),
+                    "error": str(error)
                 }
 
+
     # ========================================================
-    # RUN SERVER
+    # SERVER
     # ========================================================
 
     def run(self):
-        """
-        Start the EON web server.
-        """
 
         uvicorn.run(
             self.app,
             host=HOST,
-            port=PORT,
+            port=PORT
         )
 
 
 # ============================================================
-# GLOBAL EON API INSTANCE
+# GLOBAL API INSTANCE
 # ============================================================
 
 eon_api = EONAPI()
@@ -314,4 +295,5 @@ app = eon_api.app
 # ============================================================
 
 if __name__ == "__main__":
+
     eon_api.run()
