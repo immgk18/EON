@@ -1,436 +1,139 @@
 """
-EON Core
-=======
-Central orchestrator for the Executive Orchestration Network.
+EON Context
+===========
+Maintains conversation and active-task context.
 """
 
-from core.brain import Brain
-from core.context import Context
-from core.router import Router
 
-from agents import AgentManager
-from memory import Memory
-from security import Security
-from tasks import TaskEngine
-from tools import ToolRegistry
-from files import FileManager
-from computer import ComputerController
-from web import WebManager
-from vision import Vision
-from voice import VoiceManager
-from ui import EONUI
-
-from config import Config
-
-
-class EON:
-    """Central EON operating system."""
+class Context:
+    """Stores EON's active session context."""
 
     def __init__(self):
-        # ─────────────────────────────────
-        # CORE
-        # ─────────────────────────────────
-
-        self.context = Context()
-        self.brain = Brain(self.context)
-        self.router = Router()
-
-        # ─────────────────────────────────
-        # SYSTEM MODULES
-        # ─────────────────────────────────
-
-        self.memory = Memory(
-            Config.MEMORY_DATABASE
-        )
-
-        self.security = Security(
-            require_confirmation=Config.REQUIRE_CONFIRMATION
-        )
-
-        self.tasks = TaskEngine()
-
-        self.agents = AgentManager()
-
-        self.tools = ToolRegistry()
-
-        self.files = FileManager()
-
-        self.computer = ComputerController(
-            security=self.security
-        )
-
-        self.web = WebManager()
-
-        self.vision = Vision()
-
-        self.voice = VoiceManager()
-
-        self.ui = EONUI()
-
-        # ─────────────────────────────────
-        # SYSTEM STATE
-        # ─────────────────────────────────
-
-        self.running = False
-        self.mode = Config.MODE
+        self.history = []
+        self.current_task = None
+        self.current_goal = None
+        self.active_module = None
+        self.variables = {}
 
     # ─────────────────────────────────────
-    # START
+    # MESSAGE HISTORY
     # ─────────────────────────────────────
 
-    def start(self):
-        """Start EON."""
+    def add_message(self, role, message):
+        """Add a message to the current session."""
 
-        self.running = True
+        self.history.append({
+            "role": role,
+            "message": message
+        })
 
-        self._boot_sequence()
+    def get_history(self):
+        """Return the complete conversation history."""
 
-        while self.running:
+        return self.history.copy()
 
-            try:
-                command = input("\nYou: ").strip()
+    def get_recent(self, count=10):
+        """Return the most recent messages."""
 
-                if not command:
-                    continue
+        if count <= 0:
+            return []
 
-                self.context.add_message(
-                    "user",
-                    command
-                )
-
-                # Shutdown
-                if command.lower() in {
-                    "exit",
-                    "quit",
-                    "shutdown"
-                }:
-                    self.shutdown()
-                    continue
-
-                # Mode switching
-                if command.lower() == "kill mode":
-                    self.set_mode("KILL")
-                    continue
-
-                if command.lower() == "eon has limits":
-                    self.set_mode("NORMAL")
-                    continue
-
-                # Route command
-                module = self.router.route(command)
-
-                # Process command
-                response = self.process(
-                    command,
-                    module
-                )
-
-                # Store response
-                self.context.add_message(
-                    "eon",
-                    response
-                )
-
-                print(
-                    f"\nEON [{module.upper()}]: "
-                    f"{response}"
-                )
-
-            except KeyboardInterrupt:
-                self.shutdown()
-
-            except Exception as error:
-                print(
-                    f"\nEON: System error → {error}"
-                )
+        return self.history[-count:]
 
     # ─────────────────────────────────────
-    # COMMAND PROCESSING
+    # GOAL
     # ─────────────────────────────────────
 
-    def process(self, command, module):
-        """Process a command using the correct module."""
+    def set_goal(self, goal):
+        """Set the current goal."""
 
-        command_lower = command.lower()
+        self.current_goal = goal
 
-        # Brain
-        if module == "brain":
-            self.ui.thinking()
+    def get_goal(self):
+        """Return the current goal."""
 
-            response = self.brain.think(command)
-
-            self.ui.idle()
-
-            return response
-
-        # Memory
-        if module == "memory":
-
-            if "remember" in command_lower:
-
-                content = command
-
-                success = self.memory.remember(
-                    content
-                )
-
-                if success:
-                    return "Memory saved successfully."
-
-                return "I could not save that memory."
-
-            if "recall" in command_lower:
-
-                memories = self.memory.recall()
-
-                if not memories:
-                    return "I don't have any stored memories."
-
-                return self._format_memories(
-                    memories
-                )
-
-            return (
-                f"Memory system is online. "
-                f"{self.memory.count()} memories stored."
-            )
-
-        # Tasks
-        if module == "tasks":
-
-            goal = self.tasks.create_goal(
-                command
-            )
-
-            task = self.tasks.create_task(
-                title=command,
-                description="Created by EON."
-            )
-
-            return (
-                f"Goal registered: {goal}\n"
-                f"Task #{task.task_id} created."
-            )
-
-        # Agents
-        if module == "agents":
-
-            names = self.agents.get_agent_names()
-
-            return (
-                "Available agents: "
-                + ", ".join(names)
-            )
-
-        # Files
-        if module == "files":
-
-            return (
-                "File system module is online. "
-                "Specify an approved file operation."
-            )
-
-        # Computer
-        if module == "computer":
-
-            return (
-                "Computer control is online. "
-                "Protected actions require authorization."
-            )
-
-        # Web
-        if module == "web":
-
-            return (
-                "Web intelligence module is online."
-            )
-
-        # Vision
-        if module == "vision":
-
-            return (
-                "Vision module is online and "
-                "ready for image analysis."
-            )
-
-        # Voice
-        if module == "voice":
-
-            return (
-                "Voice module is online."
-            )
-
-        # Tools
-        if module == "tools":
-
-            return (
-                "Tool registry is online."
-            )
-
-        # Default
-        return self.brain.think(command)
+        return self.current_goal
 
     # ─────────────────────────────────────
-    # MEMORY FORMATTER
+    # TASK
     # ─────────────────────────────────────
 
-    def _format_memories(self, memories):
-        """Format memories into readable text."""
+    def set_task(self, task):
+        """Set the currently active task."""
 
-        formatted = []
+        self.current_task = task
 
-        for memory in memories:
+    def get_task(self):
+        """Return the active task."""
 
-            memory_id = memory[0]
-            category = memory[1]
-            content = memory[2]
-
-            formatted.append(
-                f"[{memory_id}] "
-                f"{category}: {content}"
-            )
-
-        return "\n".join(formatted)
+        return self.current_task
 
     # ─────────────────────────────────────
-    # MODE
+    # MODULE
     # ─────────────────────────────────────
 
-    def set_mode(self, mode):
-        """Change EON operating mode."""
+    def set_module(self, module):
+        """Set the currently active EON module."""
 
-        mode = mode.upper()
+        self.active_module = module
 
-        if mode == "KILL":
+    def get_module(self):
+        """Return the active module."""
 
-            self.mode = "KILL"
-
-            self.ui.set_mode("KILL")
-            self.ui.alert()
-
-            print()
-            print(
-                "EON: LIMITERS... RELEASED."
-            )
-            print(
-                "EON: HIGH-ALERT MODE ACTIVE."
-            )
-
-        else:
-
-            self.mode = "NORMAL"
-
-            self.ui.set_mode("NORMAL")
-            self.ui.idle()
-
-            print()
-            print(
-                "EON: NORMAL MODE RESTORED."
-            )
-            print(
-                "EON HAS LIMITS."
-            )
+        return self.active_module
 
     # ─────────────────────────────────────
-    # BOOT
+    # VARIABLES
     # ─────────────────────────────────────
 
-    def _boot_sequence(self):
-        """Initialize and display EON systems."""
+    def set_variable(self, name, value):
+        """Store a temporary session variable."""
 
-        print()
-        print("========================================")
-        print("                 E O N")
-        print("     EXECUTIVE ORCHESTRATION NETWORK")
-        print("========================================")
-        print()
+        if name:
+            self.variables[name] = value
 
-        print("EON SYSTEM ONLINE")
-        print("----------------------------------------")
+    def get_variable(self, name, default=None):
+        """Retrieve a session variable."""
 
-        print("CORE       : ONLINE")
-        print("BRAIN      : READY")
-        print("ROUTER     : READY")
-        print("CONTEXT    : READY")
-
-        print(
-            "MEMORY     : "
-            + self._status_text(
-                self.memory.status()["status"]
-            )
+        return self.variables.get(
+            name,
+            default
         )
 
-        print(
-            "SECURITY   : "
-            + self._status_text(
-                "ONLINE"
-                if self.security.enabled
-                else "OFFLINE"
-            )
-        )
+    def remove_variable(self, name):
+        """Remove a session variable."""
 
-        print(
-            "TASKS      : "
-            + self._status_text("READY")
-        )
+        if name in self.variables:
+            del self.variables[name]
+            return True
 
-        print(
-            "AGENTS     : "
-            + self._status_text("READY")
-        )
-
-        print(
-            "TOOLS      : "
-            + self._status_text("READY")
-        )
-
-        print(
-            "VOICE      : "
-            + self._status_text("READY")
-        )
-
-        print(
-            "VISION     : "
-            + self._status_text("READY")
-        )
-
-        print(
-            "WEB        : "
-            + self._status_text("READY")
-        )
-
-        print(
-            "COMPUTER   : "
-            + self._status_text("READY")
-        )
-
-        print(
-            "FILES      : "
-            + self._status_text("READY")
-        )
-
-        print("----------------------------------------")
-        print(f"MODE       : {self.mode}")
-        print("----------------------------------------")
-        print()
-        print("Awaiting command...")
-
-    def _status_text(self, status):
-        """Format a module status."""
-
-        return str(status).upper()
+        return False
 
     # ─────────────────────────────────────
-    # SHUTDOWN
+    # RESET
     # ─────────────────────────────────────
 
-    def shutdown(self):
-        """Safely shut down EON."""
+    def clear(self):
+        """Clear the current session context."""
 
-        self.running = False
+        self.history.clear()
+        self.current_task = None
+        self.current_goal = None
+        self.active_module = None
+        self.variables.clear()
 
-        print()
-        print("========================================")
-        print("          EON SYSTEM SHUTDOWN")
-        print("          SESSION TERMINATED")
-        print("========================================")
+    # ─────────────────────────────────────
+    # STATUS
+    # ─────────────────────────────────────
+
+    def status(self):
+        """Return context status."""
+
+        return {
+            "messages": len(self.history),
+            "current_goal": self.current_goal,
+            "current_task": self.current_task,
+            "active_module": self.active_module,
+            "variables": len(self.variables),
+            "status": "ONLINE",
+        }
