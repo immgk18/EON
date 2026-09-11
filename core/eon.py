@@ -13,9 +13,7 @@ BRAIN / MODULE
   ↓
 TOOLS / AGENTS / TASKS
   ↓
-VERIFICATION
-  ↓
-MEMORY
+MEMORY / CONTEXT
   ↓
 VOICE / UI
   ↓
@@ -62,8 +60,7 @@ class EON:
         # -----------------------------------------------------
 
         self.security = Security(
-            require_confirmation=
-                Config.REQUIRE_CONFIRMATION
+            require_confirmation=Config.REQUIRE_CONFIRMATION
         )
 
         # -----------------------------------------------------
@@ -75,7 +72,7 @@ class EON:
         )
 
         # -----------------------------------------------------
-        # Task engine
+        # Task Engine
         # -----------------------------------------------------
 
         self.tasks = TaskEngine()
@@ -116,6 +113,9 @@ class EON:
         self.brain = Brain(
             self.context,
             tools=self.tools,
+            memory=self.memory,
+            agents=self.agents,
+            tasks=self.tasks,
         )
 
         # -----------------------------------------------------
@@ -148,7 +148,7 @@ class EON:
         self.ui = EONUI()
 
         # -----------------------------------------------------
-        # System state
+        # System State
         # -----------------------------------------------------
 
         self.running = False
@@ -175,7 +175,6 @@ class EON:
                 ).strip()
 
                 if not command:
-
                     continue
 
                 # -------------------------------------------------
@@ -189,27 +188,28 @@ class EON:
                 }:
 
                     self.shutdown()
-
                     continue
 
                 # -------------------------------------------------
-                # Mode switching
+                # High-alert mode
                 # -------------------------------------------------
 
                 if command.lower() == "kill mode":
 
                     self.set_mode("KILL")
-
                     continue
+
+                # -------------------------------------------------
+                # Normal mode
+                # -------------------------------------------------
 
                 if command.lower() == "eon has limits":
 
                     self.set_mode("NORMAL")
-
                     continue
 
                 # -------------------------------------------------
-                # Process command
+                # Central command handler
                 # -------------------------------------------------
 
                 response = self.handle_command(
@@ -218,13 +218,16 @@ class EON:
 
                 print()
 
-                print(
-                    f"EON [{self.context.get_module().upper()}]:"
+                module = (
+                    self.context.get_module()
+                    or "brain"
                 )
 
                 print(
-                    response
+                    f"EON [{module.upper()}]:"
                 )
+
+                print(response)
 
             except KeyboardInterrupt:
 
@@ -247,10 +250,12 @@ class EON:
 
         if not command:
 
-            return "I didn't receive a command."
+            return (
+                "I didn't receive a command."
+            )
 
         # -----------------------------------------------------
-        # Store user input
+        # Save user command
         # -----------------------------------------------------
 
         self.context.add_message(
@@ -259,7 +264,7 @@ class EON:
         )
 
         # -----------------------------------------------------
-        # Route
+        # Route command
         # -----------------------------------------------------
 
         module = self.router.route(
@@ -271,7 +276,7 @@ class EON:
         )
 
         # -----------------------------------------------------
-        # Execute
+        # Process command
         # -----------------------------------------------------
 
         response = self.process(
@@ -280,7 +285,7 @@ class EON:
         )
 
         # -----------------------------------------------------
-        # Store response
+        # Save EON response
         # -----------------------------------------------------
 
         self.context.add_message(
@@ -288,22 +293,10 @@ class EON:
             response
         )
 
-        # -----------------------------------------------------
-        # Voice output
-        # -----------------------------------------------------
-
-        if (
-            self.voice.enabled
-            and self.voice.is_speaking
-        ):
-            self.voice.speak(
-                response
-            )
-
         return response
 
     # =========================================================
-    # MODULE PROCESSOR
+    # PROCESS
     # =========================================================
 
     def process(
@@ -435,6 +428,8 @@ class EON:
         # Fallback
         # -----------------------------------------------------
 
+        self.ui.thinking()
+
         return self.brain.think(
             command
         )
@@ -474,7 +469,9 @@ class EON:
             in command_lower
         ):
 
-            memories = self.memory.recall()
+            memories = (
+                self.memory.recall()
+            )
 
             if not memories:
 
@@ -518,7 +515,9 @@ class EON:
 
             if not task_list:
 
-                return "There are no tasks."
+                return (
+                    "There are no tasks."
+                )
 
             lines = []
 
@@ -540,8 +539,10 @@ class EON:
             )
         ):
 
-            task_id = self._extract_number(
-                command
+            task_id = (
+                self._extract_number(
+                    command
+                )
             )
 
             if task_id is None:
@@ -570,7 +571,7 @@ class EON:
             )
 
         # -----------------------------------------------------
-        # Register new goal/task
+        # Create new task
         # -----------------------------------------------------
 
         self.context.set_goal(
@@ -913,7 +914,7 @@ class EON:
         )
 
     # =========================================================
-    # RESULT FORMATTER
+    # FORMAT RESULT
     # =========================================================
 
     def _format_result(
@@ -949,7 +950,7 @@ class EON:
         return str(result)
 
     # =========================================================
-    # MEMORY FORMATTER
+    # FORMAT MEMORIES
     # =========================================================
 
     def _format_memories(
@@ -1175,7 +1176,7 @@ class EON:
         )
 
     # =========================================================
-    # SYSTEM STATUS
+    # STATUS
     # =========================================================
 
     def status(self):
