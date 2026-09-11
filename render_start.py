@@ -1,16 +1,14 @@
 """
-EON Render Start
-================
-Production entry point for Render.
+EON Render Startup
+==================
+Entry point used by Render.
 """
 
 from api import EONAPI
 
 
 def main():
-
     server = EONAPI()
-
     server.run()
 
 
