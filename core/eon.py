@@ -36,7 +36,7 @@ from web import WebManager
 from tools import ToolRegistry
 from computer import ComputerController
 from vision import Vision
-from voice import Voice
+from voice import VoiceController
 from ui import UI
 from diagnostics import Diagnostics
 
@@ -136,7 +136,7 @@ class EON:
         # VOICE
         # =====================================================
 
-        self.voice = Voice()
+        self.voice = VoiceController()
 
         # =====================================================
         # UI
