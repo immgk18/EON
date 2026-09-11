@@ -3,2582 +3,3956 @@
 
 <head>
 
-<meta charset="UTF-8">
+    <meta charset="UTF-8">
 
-<meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
->
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
-<title>EON</title>
+    <title>EON</title>
 
-<style>
 
-/* =========================================================
-   EON — FUTURISTIC INTERFACE
-   ========================================================= */
+    <style>
 
-:root {
+        /* =====================================================
+           ROOT
+        ===================================================== */
 
-    --gold: #ffd21c;
-    --gold-soft: #ffbd00;
-    --gold-dim: rgba(255,210,28,.22);
+        :root {
 
-    --red: #ff2020;
-    --red-soft: rgba(255,30,30,.22);
+            --gold: #ffd83d;
+            --gold-bright: #fff4a3;
+            --gold-soft: rgba(255,216,61,.55);
+            --gold-faint: rgba(255,216,61,.12);
 
-    --text: rgba(255,255,255,.78);
+            --red: #ff2020;
+            --red-bright: #ff7777;
+            --red-soft: rgba(255,32,32,.55);
 
-    --panel:
-        rgba(4,4,4,.72);
-}
+            --background: #020202;
+            --panel: rgba(5,5,5,.72);
 
+            --text: #eeeeee;
+            --muted: #777777;
 
-/* =========================================================
-   RESET
-   ========================================================= */
+            --line: rgba(255,216,61,.25);
 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
+            --core-color: #ffd83d;
+        }
 
-html,
-body {
 
-    width: 100%;
-    height: 100%;
+        /* =====================================================
+           RESET
+        ===================================================== */
 
-    overflow: hidden;
+        * {
 
-    background: #000;
+            margin: 0;
+            padding: 0;
 
-    color: white;
+            box-sizing: border-box;
 
-    font-family:
-        "Segoe UI",
-        Arial,
-        sans-serif;
-}
+        }
 
-body {
 
-    position: relative;
+        html,
+        body {
 
-    transition:
-        background .8s ease;
-}
+            width: 100%;
+            height: 100%;
 
+            overflow: hidden;
 
-/* =========================================================
-   BACKGROUND
-   ========================================================= */
+        }
 
-.background {
 
-    position: fixed;
+        body {
 
-    inset: 0;
+            background:
+                radial-gradient(
+                    circle at center,
+                    rgba(255,216,61,.035),
+                    transparent 38%
+                ),
+                #020202;
 
-    background:
+            color: var(--text);
 
-        radial-gradient(
-            circle at 50% 47%,
-            rgba(255,195,0,.055),
-            transparent 35%
-        ),
+            font-family:
+                "Segoe UI",
+                Arial,
+                sans-serif;
 
-        radial-gradient(
-            circle at 50% 50%,
-            rgba(255,180,0,.025),
-            transparent 60%
-        ),
+            letter-spacing: .08em;
 
-        #000;
+            transition:
+                background .8s ease;
 
-    pointer-events: none;
-}
+        }
 
-body.alert .background {
 
-    background:
+        /* =====================================================
+           BACKGROUND
+        ===================================================== */
 
-        radial-gradient(
-            circle at 50% 47%,
-            rgba(255,0,0,.07),
-            transparent 35%
-        ),
+        .background {
 
-        #000;
-}
+            position: fixed;
 
+            inset: 0;
 
-/* =========================================================
-   FINE STAR FIELD
-   ========================================================= */
+            overflow: hidden;
 
-.stars {
+            pointer-events: none;
 
-    position: fixed;
+            z-index: 0;
 
-    inset: 0;
+        }
 
-    pointer-events: none;
-}
 
-.star {
+        .background::before {
 
-    position: absolute;
+            content: "";
 
-    width: 1px;
-    height: 1px;
+            position: absolute;
 
-    background: var(--gold);
+            inset: 0;
 
-    border-radius: 50%;
+            background-image:
+                radial-gradient(
+                    rgba(255,216,61,.22) 1px,
+                    transparent 1px
+                );
 
-    box-shadow:
-        0 0 5px var(--gold);
+            background-size:
+                85px 85px;
 
-    opacity: .35;
+            opacity: .08;
 
-    animation:
-        starPulse
-        3s
-        ease-in-out
-        infinite;
-}
+            animation:
+                starsMove
+                30s
+                linear
+                infinite;
 
-.star:nth-child(1) {
-    left: 8%;
-    top: 18%;
-}
+        }
 
-.star:nth-child(2) {
-    left: 15%;
-    top: 63%;
-    animation-delay: .7s;
-}
 
-.star:nth-child(3) {
-    left: 25%;
-    top: 28%;
-    animation-delay: 1.2s;
-}
+        @keyframes starsMove {
 
-.star:nth-child(4) {
-    left: 73%;
-    top: 18%;
-    animation-delay: .4s;
-}
+            from {
+                transform:
+                    translate(0,0);
+            }
 
-.star:nth-child(5) {
-    left: 84%;
-    top: 40%;
-    animation-delay: 1.8s;
-}
+            to {
+                transform:
+                    translate(-85px,-85px);
+            }
 
-.star:nth-child(6) {
-    left: 91%;
-    top: 73%;
-    animation-delay: 2.3s;
-}
+        }
 
-.star:nth-child(7) {
-    left: 66%;
-    top: 82%;
-    animation-delay: 1s;
-}
 
-.star:nth-child(8) {
-    left: 37%;
-    top: 14%;
-    animation-delay: 2s;
-}
+        /* =====================================================
+           CORNER LINES
+        ===================================================== */
 
-@keyframes starPulse {
+        .corner {
 
-    0%,
-    100% {
-        opacity: .15;
-        transform: scale(.6);
-    }
+            position: fixed;
 
-    50% {
-        opacity: .8;
-        transform: scale(1.8);
-    }
-}
+            width: 150px;
+            height: 150px;
 
+            border-color:
+                var(--line);
 
-/* =========================================================
-   FINE FRAME
-   ========================================================= */
+            border-style: solid;
 
-.frame {
+            opacity: .7;
 
-    position: fixed;
+            z-index: 2;
 
-    inset: 4px;
+            pointer-events: none;
 
-    border:
-        1px solid
-        rgba(255,210,28,.18);
+        }
 
-    pointer-events: none;
 
-    z-index: 30;
-}
+        .corner.top-left {
 
-.frame::before,
-.frame::after {
+            top: 0;
+            left: 0;
 
-    content: "";
+            border-width:
+                1px 0 0 1px;
 
-    position: absolute;
+            border-radius:
+                0 0 0 18px;
 
-    width: 34px;
-    height: 34px;
+        }
 
-    border-color:
-        rgba(255,210,28,.42);
 
-    border-style: solid;
-}
+        .corner.top-right {
 
-.frame::before {
+            top: 0;
+            right: 0;
 
-    top: -1px;
-    left: -1px;
+            border-width:
+                1px 1px 0 0;
 
-    border-width:
-        2px 0 0 2px;
-}
+            border-radius:
+                0 0 18px 0;
 
-.frame::after {
+        }
 
-    bottom: -1px;
-    right: -1px;
 
-    border-width:
-        0 2px 2px 0;
-}
+        .corner.bottom-left {
 
+            bottom: 0;
+            left: 0;
 
-/* =========================================================
-   HEADER
-   ========================================================= */
+            border-width:
+                0 0 1px 1px;
 
-.header {
+            border-radius:
+                0 18px 0 0;
 
-    position: fixed;
+        }
 
-    top: 17px;
 
-    left: 50%;
+        .corner.bottom-right {
 
-    transform:
-        translateX(-50%);
+            bottom: 0;
+            right: 0;
 
-    text-align: center;
+            border-width:
+                0 1px 1px 0;
 
-    z-index: 20;
-}
+            border-radius:
+                18px 0 0 0;
 
-.logo {
+        }
 
-    font-size: 52px;
 
-    font-weight: 300;
+        /* =====================================================
+           MAIN
+        ===================================================== */
 
-    letter-spacing: 18px;
+        .app {
 
-    margin-left: 18px;
+            position: relative;
 
-    color: var(--gold);
+            width: 100%;
+            height: 100%;
 
-    text-shadow:
-        0 0 14px rgba(255,210,28,.4),
-        0 0 40px rgba(255,180,0,.15);
-}
+            display: flex;
 
-.subtitle {
+            flex-direction: column;
 
-    margin-top: 7px;
+            z-index: 5;
 
-    font-size: 12px;
+        }
 
-    letter-spacing: 7px;
 
-    color:
-        rgba(255,210,28,.78);
-}
+        /* =====================================================
+           TOP BAR
+        ===================================================== */
 
-.motto {
+        .topbar {
 
-    margin-top: 17px;
+            height: 115px;
 
-    font-size: 9px;
+            display: flex;
 
-    letter-spacing: 6px;
+            align-items: center;
 
-    color:
-        rgba(255,255,255,.36);
-}
+            justify-content: center;
 
+            position: relative;
 
-/* =========================================================
-   LEFT STATUS PANEL
-   ========================================================= */
+            flex-shrink: 0;
 
-.status-panel {
+        }
 
-    position: fixed;
 
-    top: 36px;
-    left: 32px;
+        .brand {
 
-    width: 250px;
+            text-align: center;
 
-    padding: 17px 18px;
+        }
 
-    border:
-        1px solid
-        rgba(255,210,28,.15);
 
-    border-radius: 13px;
+        .brand-name {
 
-    background: var(--panel);
+            font-family:
+                "Courier New",
+                monospace;
 
-    backdrop-filter:
-        blur(12px);
+            font-size: 52px;
 
-    z-index: 20;
+            font-weight: 300;
 
-    box-shadow:
-        inset 0 0 30px
-        rgba(255,190,0,.015);
-}
+            letter-spacing:
+                .55em;
 
-.status-title {
+            margin-left:
+                .55em;
 
-    display: flex;
+            color:
+                var(--core-color);
 
-    align-items: center;
+            text-shadow:
+                0 0 12px var(--core-color),
+                0 0 30px var(--core-color);
 
-    gap: 12px;
+            transition:
+                color .5s ease,
+                text-shadow .5s ease;
 
-    padding-bottom: 13px;
+        }
 
-    border-bottom:
-        1px solid
-        rgba(255,210,28,.13);
 
-    font-family:
-        monospace;
+        .brand-sub {
 
-    font-size: 13px;
+            margin-top: 10px;
 
-    letter-spacing: 2px;
-}
+            font-size: 11px;
 
-.status-light {
+            letter-spacing:
+                .55em;
 
-    width: 13px;
-    height: 13px;
+            color:
+                rgba(255,216,61,.55);
 
-    border-radius: 50%;
+            transition:
+                color .5s ease;
 
-    background: var(--gold);
+        }
 
-    box-shadow:
-        0 0 8px var(--gold),
-        0 0 18px var(--gold);
-}
 
-.status-row {
+        /* =====================================================
+           STATUS PANEL
+        ===================================================== */
 
-    display: flex;
+        .system-panel {
 
-    justify-content: space-between;
+            position: absolute;
 
-    padding-top: 9px;
+            top: 32px;
+            left: 32px;
 
-    font-family:
-        monospace;
+            width: 250px;
 
-    font-size: 11px;
+            padding: 18px 20px;
 
-    letter-spacing: 1px;
+            border:
+                1px solid
+                rgba(255,216,61,.18);
 
-    color:
-        rgba(255,255,255,.48);
-}
+            border-radius: 15px;
 
-.status-row span:last-child {
+            background:
+                rgba(4,4,4,.6);
 
-    color: var(--gold);
-}
+            backdrop-filter:
+                blur(12px);
 
+        }
 
-/* =========================================================
-   RIGHT MODE PANEL
-   ========================================================= */
 
-.mode-panel {
+        .panel-title {
 
-    position: fixed;
+            display: flex;
 
-    top: 76px;
-    right: 32px;
+            align-items: center;
 
-    width: 250px;
+            gap: 10px;
 
-    padding: 17px;
+            font-size: 12px;
 
-    border:
-        1px solid
-        rgba(255,210,28,.15);
+            letter-spacing:
+                .18em;
 
-    border-radius: 13px;
+            color:
+                #e8e8e8;
 
-    background: var(--panel);
+            padding-bottom: 15px;
 
-    backdrop-filter:
-        blur(12px);
+            border-bottom:
+                1px solid
+                rgba(255,216,61,.12);
 
-    z-index: 20;
-}
+        }
 
-.mode-header {
 
-    display: flex;
+        .status-dot {
 
-    align-items: center;
+            width: 10px;
+            height: 10px;
 
-    gap: 10px;
+            border-radius: 50%;
 
-    padding-bottom: 13px;
+            background:
+                var(--core-color);
 
-    border-bottom:
-        1px solid
-        rgba(255,210,28,.18);
+            box-shadow:
+                0 0 10px
+                var(--core-color);
 
-    font-family: monospace;
+            animation:
+                statusPulse
+                2s
+                ease-in-out
+                infinite;
 
-    font-size: 11px;
+        }
 
-    letter-spacing: 2px;
-}
 
-.mode-dot {
+        @keyframes statusPulse {
 
-    width: 13px;
-    height: 13px;
+            0%,
+            100% {
+                opacity: .65;
+            }
 
-    border-radius: 50%;
+            50% {
+                opacity: 1;
+            }
 
-    background: var(--gold);
+        }
 
-    box-shadow:
-        0 0 10px var(--gold);
-}
 
-.mode-text {
+        .system-row {
 
-    margin-top: 22px;
+            display: flex;
 
-    font-family: monospace;
+            justify-content:
+                space-between;
 
-    font-size: 12px;
+            margin-top: 12px;
 
-    line-height: 1.8;
+            font-family:
+                "Courier New",
+                monospace;
 
-    letter-spacing: 1px;
+            font-size: 10px;
 
-    color:
-        rgba(255,255,255,.65);
-}
+            color:
+                #6d6d6d;
 
+        }
 
-/* =========================================================
-   CONTROL BUTTONS
-   ========================================================= */
 
-.controls {
+        .system-row span:last-child {
 
-    position: fixed;
+            color:
+                var(--core-color);
 
-    top: 21px;
-    right: 32px;
+            transition:
+                color .5s ease;
 
-    display: flex;
+        }
 
-    gap: 8px;
 
-    z-index: 40;
-}
+        /* =====================================================
+           MODE PANEL
+        ===================================================== */
 
-.control {
+        .mode-panel {
 
-    width: 38px;
-    height: 34px;
+            position: absolute;
 
-    border:
-        1px solid
-        rgba(255,210,28,.14);
+            top: 32px;
+            right: 32px;
 
-    border-radius: 8px;
+            width: 250px;
 
-    background:
-        rgba(0,0,0,.7);
+            padding: 18px 20px;
 
-    color:
-        rgba(255,210,28,.8);
+            border:
+                1px solid
+                rgba(255,216,61,.18);
 
-    cursor: pointer;
+            border-radius: 15px;
 
-    font-size: 15px;
+            background:
+                rgba(4,4,4,.6);
 
-    transition: .3s;
-}
+            backdrop-filter:
+                blur(12px);
 
-.control:hover {
+        }
 
-    border-color: var(--gold);
 
-    box-shadow:
-        0 0 18px
-        rgba(255,210,28,.15);
-}
+        .mode-header {
 
+            display: flex;
 
-/* =========================================================
-   ENERGY CORE
-   ========================================================= */
+            align-items: center;
 
-.core {
+            gap: 10px;
 
-    position: fixed;
+            padding-bottom: 14px;
 
-    left: 50%;
-    top: 49%;
+            border-bottom:
+                1px solid
+                rgba(255,216,61,.12);
 
-    transform:
-        translate(-50%, -50%);
+            font-size: 11px;
 
-    width: min(510px, 45vw);
-    aspect-ratio: 1;
+        }
 
-    z-index: 5;
 
-    display: flex;
+        .mode-light {
 
-    align-items: center;
-    justify-content: center;
-}
+            width: 10px;
+            height: 10px;
 
+            border-radius: 50%;
 
-/* =========================================================
-   CORE AURA
-   ========================================================= */
+            background:
+                var(--core-color);
 
-.core-aura {
+            box-shadow:
+                0 0 12px
+                var(--core-color);
 
-    position: absolute;
+        }
 
-    inset: -25%;
 
-    border-radius: 50%;
+        .mode-text {
 
-    background:
-        radial-gradient(
-            circle,
-            rgba(255,210,28,.22),
-            rgba(255,170,0,.07) 42%,
-            transparent 70%
-        );
+            color:
+                var(--core-color);
 
-    filter: blur(25px);
+        }
 
-    animation:
-        auraBreath
-        4s
-        ease-in-out
-        infinite;
-}
 
-@keyframes auraBreath {
+        .mode-message {
 
-    0%,
-    100% {
-        transform: scale(.88);
-        opacity: .6;
-    }
+            margin-top: 18px;
 
-    50% {
-        transform: scale(1.08);
-        opacity: 1;
-    }
-}
+            font-family:
+                "Courier New",
+                monospace;
 
+            font-size: 11px;
 
-/* =========================================================
-   HOLLOW SPHERE
-   ========================================================= */
+            line-height: 1.8;
 
-.energy-sphere {
+            color:
+                #888;
 
-    position: absolute;
+        }
 
-    width: 72%;
-    height: 72%;
 
-    border-radius: 50%;
+        /* =====================================================
+           CORE AREA
+        ===================================================== */
 
-    background:
+        .core-area {
 
-        radial-gradient(
-            circle,
-            transparent 0%,
-            transparent 38%,
-            rgba(255,220,70,.035) 42%,
-            rgba(255,205,20,.18) 54%,
-            rgba(255,210,28,.8) 69%,
-            rgba(255,180,0,.25) 76%,
-            transparent 82%
-        );
+            flex: 1;
 
-    box-shadow:
+            min-height: 0;
 
-        0 0 15px
-        rgba(255,210,28,.95),
+            display: flex;
 
-        0 0 35px
-        rgba(255,190,0,.65),
+            align-items: center;
 
-        0 0 80px
-        rgba(255,175,0,.35),
+            justify-content: center;
 
-        inset 0 0 30px
-        rgba(255,210,28,.45);
+            position: relative;
 
-    animation:
-        spherePulse
-        3.8s
-        ease-in-out
-        infinite;
-}
+        }
 
-@keyframes spherePulse {
 
-    0%,
-    100% {
-        transform: scale(.97);
-    }
+        /* =====================================================
+           SIDE VOICE INDICATORS
+        ===================================================== */
 
-    50% {
-        transform: scale(1.03);
-    }
-}
+        .voice-indicator {
 
+            position: absolute;
 
-/* =========================================================
-   HOLLOW CENTER
-   ========================================================= */
+            width: 220px;
 
-.hollow {
+            text-align: center;
 
-    position: absolute;
+            top: 50%;
 
-    width: 34%;
-    height: 34%;
+            transform:
+                translateY(-50%);
 
-    border-radius: 50%;
+        }
 
-    background: #000;
 
-    box-shadow:
+        .voice-indicator.left {
 
-        inset 0 0 25px
-        rgba(0,0,0,.95),
+            left: 8%;
 
-        0 0 35px
-        rgba(255,210,28,.15);
+        }
 
-    z-index: 4;
-}
 
+        .voice-indicator.right {
 
-/* =========================================================
-   INNER ENERGY
-   ========================================================= */
+            right: 8%;
 
-.inner-energy {
+        }
 
-    position: absolute;
 
-    width: 46%;
-    height: 46%;
+        .voice-label {
 
-    border-radius: 50%;
+            font-family:
+                "Courier New",
+                monospace;
 
-    border:
-        1px solid
-        rgba(255,230,100,.65);
+            font-size: 12px;
 
-    border-top-color:
-        transparent;
+            letter-spacing:
+                .35em;
 
-    border-bottom-color:
-        rgba(255,210,28,.8);
+            color:
+                #999;
 
-    animation:
-        rotateEnergy
-        2.8s
-        linear
-        infinite;
-}
+            margin-bottom: 18px;
 
-@keyframes rotateEnergy {
+        }
 
-    from {
-        transform: rotate(0deg);
-    }
 
-    to {
-        transform: rotate(360deg);
-    }
-}
+        .wave {
 
+            height: 45px;
 
-/* =========================================================
-   ORBITAL RINGS
-   ========================================================= */
+            display: flex;
 
-.ring {
+            justify-content:
+                center;
 
-    position: absolute;
+            align-items:
+                center;
 
-    border:
-        1px solid
-        rgba(255,210,28,.23);
+            gap: 4px;
 
-    border-radius: 50%;
+        }
 
-    box-shadow:
-        0 0 8px
-        rgba(255,210,28,.08);
 
-    pointer-events: none;
-}
+        .wave span {
 
-.ring-1 {
+            width: 3px;
 
-    width: 92%;
-    height: 32%;
+            height: 10px;
 
-    transform:
-        rotate(-17deg);
+            border-radius: 3px;
 
-    animation:
-        ringSpin1
-        11s
-        linear
-        infinite;
-}
+            background:
+                var(--core-color);
 
-.ring-2 {
+            box-shadow:
+                0 0 8px
+                var(--core-color);
 
-    width: 100%;
-    height: 43%;
+            animation:
+                waveIdle
+                1.2s
+                ease-in-out
+                infinite;
 
-    transform:
-        rotate(65deg);
+            animation-delay:
+                calc(var(--i) * -.08s);
 
-    animation:
-        ringSpin2
-        15s
-        linear
-        infinite reverse;
-}
+        }
 
-.ring-3 {
 
-    width: 82%;
-    height: 58%;
+        @keyframes waveIdle {
 
-    transform:
-        rotate(115deg);
+            0%,
+            100% {
+                height: 7px;
+                opacity: .45;
+            }
 
-    animation:
-        ringSpin3
-        19s
-        linear
-        infinite;
-}
+            50% {
+                height: 28px;
+                opacity: 1;
+            }
 
-.ring-4 {
+        }
 
-    width: 106%;
-    height: 67%;
 
-    transform:
-        rotate(28deg);
+        body.listening .wave span {
 
-    border-color:
-        rgba(255,210,28,.09);
+            animation-duration:
+                .35s;
 
-    animation:
-        ringSpin1
-        24s
-        linear
-        infinite reverse;
-}
+        }
 
-@keyframes ringSpin1 {
 
-    from {
-        transform:
-            rotate(0deg)
-            rotateX(62deg);
-    }
+        /* =====================================================
+           CORE
+        ===================================================== */
 
-    to {
-        transform:
-            rotate(360deg)
-            rotateX(62deg);
-    }
-}
+        .core {
 
-@keyframes ringSpin2 {
+            position: relative;
 
-    from {
-        transform:
-            rotate(0deg)
-            rotateX(66deg);
-    }
+            width: min(560px, 47vw);
 
-    to {
-        transform:
-            rotate(360deg)
-            rotateX(66deg);
-    }
-}
+            aspect-ratio: 1;
 
-@keyframes ringSpin3 {
+            display: flex;
 
-    from {
-        transform:
-            rotate(0deg)
-            rotateY(65deg);
-    }
+            align-items: center;
 
-    to {
-        transform:
-            rotate(360deg)
-            rotateY(65deg);
-    }
-}
+            justify-content: center;
 
+        }
 
-/* =========================================================
-   ENERGY FILAMENTS
-   ========================================================= */
 
-.filament {
+        /* =====================================================
+           CORE AURA
+        ===================================================== */
 
-    position: absolute;
+        .core-aura {
 
-    width: 63%;
-    height: 63%;
+            position: absolute;
 
-    border-radius: 50%;
+            width: 68%;
 
-    border-top:
-        2px solid
-        rgba(255,230,100,.48);
+            height: 68%;
 
-    border-left:
-        1px solid
-        rgba(255,210,28,.3);
+            border-radius: 50%;
 
-    filter:
-        blur(.2px);
+            background:
+                var(--core-color);
 
-    opacity: .8;
-}
+            opacity: .12;
 
-.f1 {
+            filter:
+                blur(65px);
 
-    transform:
-        rotate(18deg)
-        scaleY(.86);
+            animation:
+                auraPulse
+                4s
+                ease-in-out
+                infinite;
 
-    animation:
-        filament1
-        4s
-        linear
-        infinite;
-}
+            transition:
+                background .5s ease;
 
-.f2 {
+        }
 
-    transform:
-        rotate(87deg)
-        scaleY(.8);
 
-    animation:
-        filament2
-        5s
-        linear
-        infinite reverse;
-}
+        @keyframes auraPulse {
 
-.f3 {
+            0%,
+            100% {
 
-    transform:
-        rotate(150deg)
-        scaleY(.9);
+                transform:
+                    scale(.85);
 
-    animation:
-        filament1
-        6s
-        linear
-        infinite;
-}
+                opacity: .08;
 
-@keyframes filament1 {
+            }
 
-    from {
-        transform:
-            rotate(0deg)
-            scaleY(.86);
-    }
+            50% {
 
-    to {
-        transform:
-            rotate(360deg)
-            scaleY(.86);
-    }
-}
+                transform:
+                    scale(1.15);
 
-@keyframes filament2 {
+                opacity: .18;
 
-    from {
-        transform:
-            rotate(360deg)
-            scaleY(.8);
-    }
+            }
 
-    to {
-        transform:
-            rotate(0deg)
-            scaleY(.8);
-    }
-}
+        }
 
 
-/* =========================================================
-   FLOATING ENERGY PARTICLES
-   ========================================================= */
+        /* =====================================================
+           ORBITAL RINGS
+        ===================================================== */
 
-.energy-particles {
+        .ring {
 
-    position: absolute;
+            position: absolute;
 
-    inset: -5%;
+            left: 50%;
+            top: 50%;
 
-    border-radius: 50%;
-}
+            border:
+                1px solid
+                var(--core-color);
 
-.ep {
+            border-radius: 50%;
 
-    position: absolute;
+            transform:
+                translate(-50%,-50%);
 
-    width: 4px;
-    height: 4px;
+            opacity: .45;
 
-    border-radius: 50%;
+            transition:
+                border-color .5s ease;
 
-    background:
-        #ffe45a;
+        }
 
-    box-shadow:
-        0 0 7px #ffd21c,
-        0 0 16px #ffb900;
 
-    animation:
-        particleOrbit
-        5s
-        linear
-        infinite;
-}
+        .ring-1 {
 
-.ep:nth-child(1) {
-    top: 15%;
-    left: 51%;
-}
+            width: 88%;
+            height: 88%;
 
-.ep:nth-child(2) {
-    top: 27%;
-    left: 78%;
-    animation-delay: .7s;
-}
+            animation:
+                orbit1
+                10s
+                linear
+                infinite;
 
-.ep:nth-child(3) {
-    top: 63%;
-    left: 87%;
-    animation-delay: 1.4s;
-}
+        }
 
-.ep:nth-child(4) {
-    top: 83%;
-    left: 48%;
-    animation-delay: 2.1s;
-}
 
-.ep:nth-child(5) {
-    top: 66%;
-    left: 10%;
-    animation-delay: 2.8s;
-}
+        .ring-2 {
 
-.ep:nth-child(6) {
-    top: 32%;
-    left: 12%;
-    animation-delay: 3.5s;
-}
+            width: 96%;
+            height: 52%;
 
-@keyframes particleOrbit {
+            animation:
+                orbit2
+                7s
+                linear
+                infinite;
 
-    0% {
-        transform:
-            rotate(0deg)
-            translateX(0);
-        opacity: .2;
-    }
+        }
 
-    50% {
-        opacity: 1;
-    }
 
-    100% {
-        transform:
-            rotate(360deg)
-            translateX(18px);
-        opacity: .2;
-    }
-}
+        .ring-3 {
 
+            width: 104%;
+            height: 62%;
 
-/* =========================================================
-   VOICE INDICATORS
-   ========================================================= */
+            animation:
+                orbit3
+                13s
+                linear
+                infinite;
 
-.voice-left,
-.voice-right {
+        }
 
-    position: fixed;
 
-    top: 51%;
+        .ring-4 {
 
-    transform:
-        translateY(-50%);
+            width: 112%;
+            height: 42%;
 
-    width: 210px;
+            animation:
+                orbit4
+                9s
+                linear
+                infinite;
 
-    z-index: 12;
-}
+        }
 
-.voice-left {
-    left: 12%;
-}
 
-.voice-right {
-    right: 12%;
-}
+        @keyframes orbit1 {
 
-.voice-title {
+            from {
 
-    font-family: monospace;
+                transform:
+                    translate(-50%,-50%)
+                    rotate(0deg);
 
-    font-size: 13px;
+            }
 
-    letter-spacing: 6px;
+            to {
 
-    color:
-        rgba(255,255,255,.68);
+                transform:
+                    translate(-50%,-50%)
+                    rotate(360deg);
 
-    margin-bottom: 18px;
-}
+            }
 
-.voice-bars {
+        }
 
-    display: flex;
 
-    align-items: center;
+        @keyframes orbit2 {
 
-    justify-content: center;
+            from {
 
-    gap: 4px;
+                transform:
+                    translate(-50%,-50%)
+                    rotate(360deg)
+                    rotateX(62deg);
 
-    height: 45px;
-}
+            }
 
-.bar {
+            to {
 
-    width: 3px;
+                transform:
+                    translate(-50%,-50%)
+                    rotate(0deg)
+                    rotateX(62deg);
 
-    height: 13px;
+            }
 
-    border-radius: 4px;
+        }
 
-    background:
-        var(--gold);
 
-    box-shadow:
-        0 0 8px
-        rgba(255,210,28,.65);
+        @keyframes orbit3 {
 
-    animation:
-        wave
-        1s
-        ease-in-out
-        infinite;
-}
+            from {
 
-.bar:nth-child(1) {
-    animation-delay: .05s;
-}
+                transform:
+                    translate(-50%,-50%)
+                    rotate(0deg)
+                    rotateY(68deg);
 
-.bar:nth-child(2) {
-    animation-delay: .12s;
-}
+            }
 
-.bar:nth-child(3) {
-    animation-delay: .2s;
-}
+            to {
 
-.bar:nth-child(4) {
-    animation-delay: .28s;
-}
+                transform:
+                    translate(-50%,-50%)
+                    rotate(360deg)
+                    rotateY(68deg);
 
-.bar:nth-child(5) {
-    animation-delay: .36s;
-}
+            }
 
-.bar:nth-child(6) {
-    animation-delay: .44s;
-}
+        }
 
-.bar:nth-child(7) {
-    animation-delay: .52s;
-}
 
-.bar:nth-child(8) {
-    animation-delay: .6s;
-}
+        @keyframes orbit4 {
 
-.bar:nth-child(9) {
-    animation-delay: .68s;
-}
+            from {
 
-@keyframes wave {
+                transform:
+                    translate(-50%,-50%)
+                    rotate(360deg)
+                    rotateX(55deg);
 
-    0%,
-    100% {
-        transform: scaleY(.4);
-    }
+            }
 
-    50% {
-        transform: scaleY(2.4);
-    }
-}
+            to {
 
+                transform:
+                    translate(-50%,-50%)
+                    rotate(0deg)
+                    rotateX(55deg);
 
-/* =========================================================
-   LISTENING STATE
-   ========================================================= */
+            }
 
-body.listening .energy-sphere {
+        }
 
-    transform: scale(1.08);
 
-    box-shadow:
+        /* =====================================================
+           ENERGY SPHERE
+        ===================================================== */
 
-        0 0 25px
-        rgba(255,220,60,1),
+        .energy-sphere {
 
-        0 0 60px
-        rgba(255,205,20,.9),
+            position: absolute;
 
-        0 0 120px
-        rgba(255,180,0,.6),
+            width: 66%;
+            height: 66%;
 
-        inset 0 0 45px
-        rgba(255,220,50,.65);
-}
+            border-radius: 50%;
 
-body.listening .bar {
+            background:
 
-    animation-duration:
-        .42s;
-}
+                radial-gradient(
+                    circle at center,
+                    transparent 0 18%,
+                    rgba(255,216,61,.05) 19%,
+                    rgba(255,216,61,.08) 35%,
+                    rgba(255,216,61,.25) 55%,
+                    rgba(255,216,61,.55) 70%,
+                    transparent 74%
+                );
 
+            border:
+                2px solid
+                var(--core-color);
 
-/* =========================================================
-   THINKING STATE
-   ========================================================= */
+            box-shadow:
 
-body.thinking .ring {
+                0 0 8px
+                var(--core-color),
 
-    animation-duration:
-        2s;
-}
+                0 0 25px
+                var(--core-color),
 
-body.thinking .energy-sphere {
+                0 0 55px
+                var(--core-color),
 
-    animation-duration:
-        1.1s;
-}
+                inset 0 0 30px
+                rgba(255,216,61,.35);
 
+            animation:
+                sphereFloat
+                4s
+                ease-in-out
+                infinite;
 
-/* =========================================================
-   HIGH ALERT
-   ========================================================= */
+            transition:
+                border-color .5s ease,
+                box-shadow .5s ease;
 
-body.alert {
+            overflow: visible;
 
-    --gold: #ff2424;
-    --gold-soft: #ff0000;
-    --gold-dim: rgba(255,0,0,.22);
-}
+        }
 
-body.alert .logo {
 
-    color: #ff2525;
+        @keyframes sphereFloat {
 
-    text-shadow:
-        0 0 14px rgba(255,0,0,.6),
-        0 0 40px rgba(255,0,0,.3);
-}
+            0%,
+            100% {
 
-body.alert .energy-sphere {
+                transform:
+                    scale(.98);
 
-    background:
+            }
 
-        radial-gradient(
-            circle,
-            transparent 0%,
-            transparent 38%,
-            rgba(255,40,40,.05) 42%,
-            rgba(255,20,20,.2) 54%,
-            rgba(255,25,25,.9) 69%,
-            rgba(190,0,0,.3) 76%,
-            transparent 82%
-        );
+            50% {
 
-    box-shadow:
+                transform:
+                    scale(1.035);
 
-        0 0 18px
-        rgba(255,30,30,1),
+            }
 
-        0 0 45px
-        rgba(255,0,0,.75),
+        }
 
-        0 0 100px
-        rgba(220,0,0,.45),
 
-        inset 0 0 35px
-        rgba(255,20,20,.55);
-}
+        /* =====================================================
+           HOLLOW CENTER
+        ===================================================== */
 
-body.alert .hollow {
+        .hollow {
 
-    box-shadow:
-        inset 0 0 35px #000,
-        0 0 35px rgba(255,0,0,.3);
-}
+            position: absolute;
 
-body.alert .mode-dot {
+            width: 25%;
+            height: 25%;
 
-    background: #ff2020;
+            border-radius: 50%;
 
-    box-shadow:
-        0 0 12px #ff2020;
-}
+            background:
+                #000;
 
+            border:
+                2px solid
+                var(--core-color);
 
-/* =========================================================
-   COMMAND AREA
-   ========================================================= */
+            box-shadow:
 
-.command-area {
+                0 0 8px
+                var(--core-color),
 
-    position: fixed;
+                0 0 20px
+                var(--core-color),
 
-    bottom: 62px;
+                inset 0 0 20px
+                rgba(0,0,0,.95);
 
-    left: 50%;
+            z-index: 8;
 
-    transform:
-        translateX(-50%);
+            animation:
+                hollowPulse
+                3s
+                ease-in-out
+                infinite;
 
-    width: min(790px, 55vw);
+            transition:
+                border-color .5s ease,
+                box-shadow .5s ease;
 
-    height: 72px;
+        }
 
-    display: flex;
 
-    align-items: center;
+        @keyframes hollowPulse {
 
-    z-index: 25;
-}
+            0%,
+            100% {
 
-.command-box {
+                transform:
+                    scale(.92);
 
-    width: 100%;
-    height: 58px;
+            }
 
-    padding:
-        0 68px;
+            50% {
 
-    border:
-        1px solid
-        rgba(255,210,28,.45);
+                transform:
+                    scale(1.08);
 
-    border-radius: 30px;
+            }
 
-    background:
-        rgba(0,0,0,.75);
+        }
 
-    color: white;
 
-    outline: none;
+        /* =====================================================
+           INNER ENERGY
+        ===================================================== */
 
-    font-size: 15px;
+        .inner-energy {
 
-    box-shadow:
-        0 0 20px
-        rgba(255,190,0,.05);
+            position: absolute;
 
-    transition:
-        .3s;
-}
+            width: 47%;
+            height: 47%;
 
-.command-box:focus {
+            border-radius: 50%;
 
-    border-color:
-        var(--gold);
+            background:
 
-    box-shadow:
-        0 0 30px
-        rgba(255,190,0,.12);
-}
+                conic-gradient(
+                    from 0deg,
+                    transparent,
+                    var(--core-color),
+                    transparent,
+                    var(--core-color),
+                    transparent
+                );
 
-.command-box::placeholder {
+            filter:
+                blur(9px);
 
-    color:
-        rgba(255,255,255,.27);
-}
+            opacity: .7;
 
+            animation:
+                innerRotate
+                2.8s
+                linear
+                infinite;
 
-/* =========================================================
-   MIC / SEND
-   ========================================================= */
+            mask-image:
+                radial-gradient(
+                    circle,
+                    transparent 30%,
+                    black 34%,
+                    black 55%,
+                    transparent 62%
+                );
 
-.round-button {
+            -webkit-mask-image:
+                radial-gradient(
+                    circle,
+                    transparent 30%,
+                    black 34%,
+                    black 55%,
+                    transparent 62%
+                );
 
-    position: absolute;
+        }
 
-    width: 58px;
-    height: 58px;
 
-    border-radius: 50%;
+        @keyframes innerRotate {
 
-    border:
-        1px solid
-        var(--gold);
+            from {
 
-    background:
-        #030303;
+                transform:
+                    rotate(0deg);
 
-    color:
-        var(--gold);
+            }
 
-    font-size: 20px;
+            to {
 
-    cursor: pointer;
+                transform:
+                    rotate(360deg);
 
-    z-index: 2;
+            }
 
-    box-shadow:
-        0 0 15px
-        rgba(255,210,28,.12);
+        }
 
-    transition:
-        .3s;
-}
 
-.round-button:hover {
+        /* =====================================================
+           ENERGY SHELLS
+        ===================================================== */
 
-    box-shadow:
-        0 0 30px
-        rgba(255,210,28,.3);
+        .energy-sphere::before,
+        .energy-sphere::after {
 
-    transform:
-        scale(1.05);
-}
+            content: "";
 
-.mic {
-    left: -8px;
-}
+            position: absolute;
 
-.send {
-    right: -8px;
-}
+            inset: -8%;
 
+            border-radius: 50%;
 
-/* =========================================================
-   RESPONSE
-   ========================================================= */
+            border:
+                1px solid
+                var(--core-color);
 
-.response {
+            opacity: .5;
 
-    position: fixed;
+            pointer-events: none;
 
-    bottom: 29px;
+        }
 
-    left: 50%;
 
-    transform:
-        translateX(-50%);
+        .energy-sphere::before {
 
-    width: 80%;
+            transform:
+                rotateX(65deg);
 
-    text-align: center;
+            animation:
+                shellOne
+                5s
+                linear
+                infinite;
 
-    font-family: monospace;
+        }
 
-    font-size: 10px;
 
-    letter-spacing: 5px;
+        .energy-sphere::after {
 
-    color:
-        rgba(255,210,28,.68);
+            transform:
+                rotateY(65deg);
 
-    z-index: 20;
+            animation:
+                shellTwo
+                7s
+                linear
+                infinite reverse;
 
-    white-space: nowrap;
+        }
 
-    overflow: hidden;
 
-    text-overflow: ellipsis;
-}
+        @keyframes shellOne {
 
+            from {
 
-/* =========================================================
-   TOKEN PANEL
-   ========================================================= */
+                transform:
+                    rotate(0deg)
+                    rotateX(65deg);
 
-.token-panel {
+            }
 
-    position: fixed;
+            to {
 
-    right: 32px;
-    bottom: 32px;
+                transform:
+                    rotate(360deg)
+                    rotateX(65deg);
 
-    display: none;
+            }
 
-    width: 260px;
+        }
 
-    padding: 15px;
 
-    border:
-        1px solid
-        rgba(255,210,28,.2);
+        @keyframes shellTwo {
 
-    background:
-        rgba(5,5,5,.95);
+            from {
 
-    border-radius: 12px;
+                transform:
+                    rotate(0deg)
+                    rotateY(65deg);
 
-    z-index: 50;
-}
+            }
 
-.token-panel.open {
-    display: block;
-}
+            to {
 
-.token-input {
+                transform:
+                    rotate(360deg)
+                    rotateY(65deg);
 
-    width: 100%;
+            }
 
-    height: 38px;
+        }
 
-    padding:
-        0 10px;
 
-    background:
-        #000;
+        /* =====================================================
+           ENERGY FILAMENTS
+        ===================================================== */
 
-    color:
-        white;
+        .filament {
 
-    border:
-        1px solid
-        rgba(255,210,28,.2);
+            position: absolute;
 
-    border-radius: 7px;
+            width: 70%;
 
-    outline: none;
-}
+            height: 2px;
 
-.token-save {
+            left: 15%;
 
-    width: 100%;
+            top: 50%;
 
-    height: 36px;
+            background:
+                linear-gradient(
+                    90deg,
+                    transparent,
+                    var(--core-color),
+                    transparent
+                );
 
-    margin-top: 8px;
+            filter:
+                blur(1px);
 
-    border: 0;
+            opacity: .65;
 
-    border-radius: 7px;
+            transform-origin:
+                center;
 
-    background:
-        rgba(255,210,28,.12);
+        }
 
-    color:
-        var(--gold);
 
-    cursor: pointer;
-}
+        .f1 {
 
+            transform:
+                rotate(24deg);
 
-/* =========================================================
-   FOOTER
-   ========================================================= */
+            animation:
+                filament1
+                2.5s
+                linear
+                infinite;
 
-.footer-left {
+        }
 
-    position: fixed;
 
-    left: 40px;
-    bottom: 25px;
+        .f2 {
 
-    font-family: monospace;
+            transform:
+                rotate(-47deg);
 
-    font-size: 8px;
+            animation:
+                filament2
+                3.1s
+                linear
+                infinite;
 
-    letter-spacing: 3px;
+        }
 
-    line-height: 2;
 
-    color:
-        rgba(255,255,255,.22);
+        .f3 {
 
-    z-index: 15;
-}
+            transform:
+                rotate(83deg);
 
-.footer-right {
+            animation:
+                filament3
+                2.1s
+                linear
+                infinite;
 
-    position: fixed;
+        }
 
-    right: 40px;
-    bottom: 25px;
 
-    font-family: monospace;
+        @keyframes filament1 {
 
-    font-size: 8px;
+            0%,
+            100% {
 
-    letter-spacing: 3px;
+                transform:
+                    rotate(24deg)
+                    scaleX(.75);
 
-    color:
-        rgba(255,255,255,.22);
+                opacity: .3;
 
-    z-index: 15;
-}
+            }
 
+            50% {
 
-/* =========================================================
-   MOBILE
-   ========================================================= */
+                transform:
+                    rotate(200deg)
+                    scaleX(1.2);
 
-@media (max-width: 800px) {
+                opacity: .9;
 
-    .logo {
+            }
 
-        font-size: 38px;
+        }
 
-        letter-spacing: 12px;
-    }
 
-    .subtitle {
+        @keyframes filament2 {
 
-        display: none;
-    }
+            0%,
+            100% {
 
-    .motto {
+                transform:
+                    rotate(-47deg)
+                    scaleX(.7);
 
-        display: none;
-    }
+            }
 
-    .status-panel,
-    .mode-panel {
+            50% {
 
-        display: none;
-    }
+                transform:
+                    rotate(150deg)
+                    scaleX(1.25);
 
-    .controls {
+            }
 
-        top: 18px;
-        right: 18px;
-    }
+        }
 
-    .core {
 
-        width: 82vw;
+        @keyframes filament3 {
 
-        top: 43%;
-    }
+            0% {
 
-    .voice-left {
+                transform:
+                    rotate(83deg)
+                    scaleX(.6);
 
-        left: 5%;
+            }
 
-        top: 62%;
+            50% {
 
-        width: 120px;
-    }
+                transform:
+                    rotate(260deg)
+                    scaleX(1.2);
 
-    .voice-right {
+            }
 
-        right: 5%;
+            100% {
 
-        top: 62%;
+                transform:
+                    rotate(443deg)
+                    scaleX(.6);
 
-        width: 120px;
-    }
+            }
 
-    .voice-title {
+        }
 
-        font-size: 8px;
 
-        letter-spacing: 3px;
+        /* =====================================================
+           PARTICLES
+        ===================================================== */
 
-        text-align: center;
-    }
+        .energy-particles {
 
-    .command-area {
+            position: absolute;
 
-        width: 88%;
+            inset: 0;
 
-        bottom: 58px;
-    }
+            pointer-events: none;
 
-    .response {
+            z-index: 12;
 
-        bottom: 22px;
+        }
 
-        font-size: 8px;
 
-        letter-spacing: 2px;
-    }
+        .ep {
 
-    .footer-left,
-    .footer-right {
+            position: absolute;
 
-        display: none;
-    }
-}
+            left: 50%;
+            top: 50%;
 
-</style>
+            width: 4px;
+            height: 4px;
+
+            border-radius: 50%;
+
+            background:
+                var(--core-color);
+
+            box-shadow:
+                0 0 8px
+                var(--core-color),
+
+                0 0 18px
+                var(--core-color);
+
+            animation:
+                particleOrbit
+                var(--duration)
+                linear
+                infinite;
+
+        }
+
+
+        .ep:nth-child(1) {
+
+            --duration: 4s;
+
+            transform-origin:
+                160px 0;
+
+        }
+
+
+        .ep:nth-child(2) {
+
+            --duration: 5s;
+
+            transform-origin:
+                -190px 0;
+
+        }
+
+
+        .ep:nth-child(3) {
+
+            --duration: 6s;
+
+            transform-origin:
+                0 180px;
+
+        }
+
+
+        .ep:nth-child(4) {
+
+            --duration: 4.8s;
+
+            transform-origin:
+                0 -170px;
+
+        }
+
+
+        .ep:nth-child(5) {
+
+            --duration: 7s;
+
+            transform-origin:
+                210px 0;
+
+        }
+
+
+        .ep:nth-child(6) {
+
+            --duration: 5.5s;
+
+            transform-origin:
+                -220px 0;
+
+        }
+
+
+        @keyframes particleOrbit {
+
+            from {
+
+                transform:
+                    rotate(0deg)
+                    translateX(190px);
+
+            }
+
+            to {
+
+                transform:
+                    rotate(360deg)
+                    translateX(190px);
+
+            }
+
+        }
+
+
+        /* =====================================================
+           BURST
+        ===================================================== */
+
+        .energy-burst {
+
+            position: absolute;
+
+            left: 50%;
+            top: 50%;
+
+            width: 25%;
+            height: 25%;
+
+            border-radius: 50%;
+
+            transform:
+                translate(-50%,-50%)
+                scale(.05);
+
+            opacity: 0;
+
+            pointer-events: none;
+
+            z-index: 30;
+
+        }
+
+
+        .energy-burst.active {
+
+            animation:
+                coreBurst
+                1.25s
+                cubic-bezier(.15,.8,.25,1)
+                forwards;
+
+        }
+
+
+        @keyframes coreBurst {
+
+            0% {
+
+                transform:
+                    translate(-50%,-50%)
+                    scale(.05);
+
+                opacity: 1;
+
+                border:
+                    3px solid
+                    var(--core-color);
+
+                box-shadow:
+
+                    0 0 20px
+                    var(--core-color),
+
+                    0 0 60px
+                    var(--core-color),
+
+                    0 0 120px
+                    var(--core-color);
+
+            }
+
+            30% {
+
+                transform:
+                    translate(-50%,-50%)
+                    scale(1.2);
+
+                opacity: 1;
+
+                box-shadow:
+
+                    0 0 40px
+                    var(--core-color),
+
+                    0 0 100px
+                    var(--core-color),
+
+                    0 0 180px
+                    var(--core-color);
+
+            }
+
+            100% {
+
+                transform:
+                    translate(-50%,-50%)
+                    scale(4);
+
+                opacity: 0;
+
+                box-shadow:
+                    0 0 20px
+                    var(--core-color);
+
+            }
+
+        }
+
+
+        /* =====================================================
+           BURST PARTICLES
+        ===================================================== */
+
+        .burst-particle {
+
+            position: absolute;
+
+            left: 50%;
+            top: 50%;
+
+            width: 4px;
+            height: 4px;
+
+            border-radius: 50%;
+
+            background:
+                var(--core-color);
+
+            box-shadow:
+
+                0 0 8px
+                var(--core-color),
+
+                0 0 20px
+                var(--core-color);
+
+            pointer-events: none;
+
+            z-index: 40;
+
+        }
+
+
+        .burst-particle.fly {
+
+            animation:
+                particleBurst
+                1s
+                cubic-bezier(.15,.8,.25,1)
+                forwards;
+
+        }
+
+
+        @keyframes particleBurst {
+
+            0% {
+
+                transform:
+                    translate(-50%,-50%)
+                    scale(.3);
+
+                opacity: 1;
+
+            }
+
+            100% {
+
+                transform:
+                    translate(
+                        calc(-50% + var(--x)),
+                        calc(-50% + var(--y))
+                    )
+                    scale(0);
+
+                opacity: 0;
+
+            }
+
+        }
+
+
+        /* =====================================================
+           EXPLOSION STATE
+        ===================================================== */
+
+        body.bursting .energy-sphere {
+
+            animation:
+                sphereExplosion
+                1s
+                cubic-bezier(.15,.8,.25,1);
+
+        }
+
+
+        body.bursting .core-aura {
+
+            animation:
+                auraExplosion
+                1s
+                ease-out;
+
+        }
+
+
+        @keyframes sphereExplosion {
+
+            0% {
+
+                transform:
+                    scale(1);
+
+            }
+
+            20% {
+
+                transform:
+                    scale(1.25);
+
+                filter:
+                    brightness(2.8);
+
+            }
+
+            45% {
+
+                transform:
+                    scale(1.08);
+
+                filter:
+                    brightness(1.8);
+
+            }
+
+            100% {
+
+                transform:
+                    scale(1);
+
+                filter:
+                    brightness(1);
+
+            }
+
+        }
+
+
+        @keyframes auraExplosion {
+
+            0% {
+
+                transform:
+                    scale(.8);
+
+                opacity: .1;
+
+            }
+
+            25% {
+
+                transform:
+                    scale(1.7);
+
+                opacity: .45;
+
+                filter:
+                    blur(15px);
+
+            }
+
+            100% {
+
+                transform:
+                    scale(1);
+
+                opacity: .12;
+
+                filter:
+                    blur(65px);
+
+            }
+
+        }
+
+
+        /* =====================================================
+           LISTENING STATE
+        ===================================================== */
+
+        body.listening .energy-sphere {
+
+            animation:
+                listeningCore
+                .7s
+                ease-in-out
+                infinite;
+
+        }
+
+
+        body.listening .ring {
+
+            opacity: .75;
+
+        }
+
+
+        body.listening .filament {
+
+            opacity: 1;
+
+        }
+
+
+        @keyframes listeningCore {
+
+            0%,
+            100% {
+
+                transform:
+                    scale(.98);
+
+            }
+
+            50% {
+
+                transform:
+                    scale(1.08);
+
+            }
+
+        }
+
+
+        /* =====================================================
+           THINKING STATE
+        ===================================================== */
+
+        body.thinking .ring-1 {
+
+            animation-duration:
+                2s;
+
+        }
+
+
+        body.thinking .ring-2 {
+
+            animation-duration:
+                1.5s;
+
+        }
+
+
+        body.thinking .inner-energy {
+
+            animation-duration:
+                .8s;
+
+        }
+
+
+        /* =====================================================
+           HIGH ALERT
+        ===================================================== */
+
+        body.alert {
+
+            --core-color:
+                var(--red);
+
+        }
+
+
+        body.alert {
+
+            background:
+
+                radial-gradient(
+                    circle at center,
+                    rgba(255,0,0,.045),
+                    transparent 42%
+                ),
+                #020202;
+
+        }
+
+
+        body.alert .brand-sub {
+
+            color:
+                rgba(255,32,32,.65);
+
+        }
+
+
+        body.alert .system-panel,
+        body.alert .mode-panel {
+
+            border-color:
+                rgba(255,32,32,.25);
+
+        }
+
+
+        /* =====================================================
+           COMMAND AREA
+        ===================================================== */
+
+        .command-area {
+
+            width:
+                min(790px, 72vw);
+
+            margin:
+                0 auto 40px;
+
+            position: relative;
+
+            flex-shrink: 0;
+
+        }
+
+
+        .command-box {
+
+            height: 70px;
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 12px;
+
+            padding:
+                8px 10px 8px 20px;
+
+            border:
+                1px solid
+                rgba(255,216,61,.45);
+
+            border-radius: 40px;
+
+            background:
+                rgba(4,4,4,.8);
+
+            box-shadow:
+
+                0 0 20px
+                rgba(255,216,61,.08),
+
+                inset 0 0 20px
+                rgba(255,216,61,.025);
+
+            transition:
+                border-color .5s ease,
+                box-shadow .5s ease;
+
+        }
+
+
+        body.alert .command-box {
+
+            border-color:
+                rgba(255,32,32,.5);
+
+            box-shadow:
+                0 0 25px
+                rgba(255,32,32,.1);
+
+        }
+
+
+        .mic-button,
+        .send-button {
+
+            width: 50px;
+            height: 50px;
+
+            flex-shrink: 0;
+
+            border:
+                1px solid
+                var(--core-color);
+
+            border-radius: 50%;
+
+            background:
+                transparent;
+
+            color:
+                var(--core-color);
+
+            cursor: pointer;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            transition:
+                .3s ease;
+
+        }
+
+
+        .mic-button:hover,
+        .send-button:hover {
+
+            background:
+                var(--gold-faint);
+
+            box-shadow:
+                0 0 20px
+                var(--core-color);
+
+            transform:
+                scale(1.06);
+
+        }
+
+
+        .mic-button.active {
+
+            background:
+                rgba(255,216,61,.15);
+
+            box-shadow:
+
+                0 0 20px
+                var(--core-color),
+
+                0 0 45px
+                var(--core-color);
+
+            animation:
+                micPulse
+                .8s
+                ease-in-out
+                infinite;
+
+        }
+
+
+        @keyframes micPulse {
+
+            0%,
+            100% {
+                transform:
+                    scale(1);
+            }
+
+            50% {
+                transform:
+                    scale(1.12);
+            }
+
+        }
+
+
+        .mic-icon {
+
+            font-size: 22px;
+
+        }
+
+
+        .send-icon {
+
+            font-size: 18px;
+
+        }
+
+
+        #commandInput {
+
+            flex: 1;
+
+            height: 100%;
+
+            border: none;
+
+            outline: none;
+
+            background:
+                transparent;
+
+            color:
+                #eeeeee;
+
+            font-size: 14px;
+
+            letter-spacing:
+                .05em;
+
+        }
+
+
+        #commandInput::placeholder {
+
+            color:
+                #555;
+
+        }
+
+
+        .ready-text {
+
+            text-align: center;
+
+            margin-top: 18px;
+
+            font-family:
+                "Courier New",
+                monospace;
+
+            font-size: 10px;
+
+            letter-spacing:
+                .45em;
+
+            color:
+                #555;
+
+            transition:
+                color .5s ease;
+
+        }
+
+
+        /* =====================================================
+           FOOTER
+        ===================================================== */
+
+        .footer {
+
+            position: fixed;
+
+            bottom: 18px;
+
+            left: 35px;
+            right: 35px;
+
+            display: flex;
+
+            justify-content:
+                space-between;
+
+            font-family:
+                "Courier New",
+                monospace;
+
+            font-size: 8px;
+
+            color:
+                #444;
+
+            letter-spacing:
+                .2em;
+
+            pointer-events: none;
+
+        }
+
+
+        /* =====================================================
+           API TOKEN OVERLAY
+        ===================================================== */
+
+        .token-overlay {
+
+            position: fixed;
+
+            inset: 0;
+
+            z-index: 100;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            background:
+                rgba(0,0,0,.92);
+
+            backdrop-filter:
+                blur(18px);
+
+        }
+
+
+        .token-card {
+
+            width:
+                min(520px, 90vw);
+
+            padding: 35px;
+
+            border:
+                1px solid
+                rgba(255,216,61,.35);
+
+            border-radius: 20px;
+
+            background:
+                rgba(8,8,8,.95);
+
+            box-shadow:
+                0 0 60px
+                rgba(255,216,61,.08);
+
+            text-align: center;
+
+        }
+
+
+        .token-card h2 {
+
+            color:
+                var(--gold);
+
+            font-family:
+                "Courier New",
+                monospace;
+
+            letter-spacing:
+                .35em;
+
+            margin-bottom: 15px;
+
+        }
+
+
+        .token-card p {
+
+            color:
+                #777;
+
+            font-size: 11px;
+
+            line-height: 1.8;
+
+            margin-bottom: 25px;
+
+        }
+
+
+        #tokenInput {
+
+            width: 100%;
+
+            height: 48px;
+
+            padding:
+                0 16px;
+
+            border:
+                1px solid
+                rgba(255,216,61,.3);
+
+            border-radius: 10px;
+
+            background:
+                #020202;
+
+            color:
+                white;
+
+            outline: none;
+
+        }
+
+
+        .token-button {
+
+            width: 100%;
+
+            height: 48px;
+
+            margin-top: 12px;
+
+            border:
+                1px solid
+                var(--gold);
+
+            border-radius: 10px;
+
+            background:
+                rgba(255,216,61,.08);
+
+            color:
+                var(--gold);
+
+            cursor: pointer;
+
+            letter-spacing:
+                .2em;
+
+        }
+
+
+        .token-button:hover {
+
+            background:
+                rgba(255,216,61,.18);
+
+            box-shadow:
+                0 0 25px
+                rgba(255,216,61,.2);
+
+        }
+
+
+        .token-error {
+
+            margin-top: 12px;
+
+            color:
+                #ff5555;
+
+            font-size: 10px;
+
+        }
+
+
+        .hidden {
+
+            display: none !important;
+
+        }
+
+
+        /* =====================================================
+           RESPONSIVE
+        ===================================================== */
+
+        @media (max-width: 900px) {
+
+            .system-panel,
+            .mode-panel {
+
+                width: 190px;
+
+                padding: 13px;
+
+            }
+
+
+            .system-row {
+
+                font-size: 8px;
+
+            }
+
+
+            .voice-indicator {
+
+                display: none;
+
+            }
+
+
+            .core {
+
+                width:
+                    min(520px, 70vw);
+
+            }
+
+        }
+
+
+        @media (max-width: 650px) {
+
+            .topbar {
+
+                height: 90px;
+
+            }
+
+
+            .brand-name {
+
+                font-size: 34px;
+
+            }
+
+
+            .brand-sub {
+
+                font-size: 7px;
+
+            }
+
+
+            .system-panel {
+
+                top: 15px;
+                left: 15px;
+
+                width: 125px;
+
+            }
+
+
+            .mode-panel {
+
+                top: 15px;
+                right: 15px;
+
+                width: 125px;
+
+            }
+
+
+            .system-row {
+
+                display: none;
+
+            }
+
+
+            .panel-title {
+
+                font-size: 8px;
+
+            }
+
+
+            .mode-header {
+
+                font-size: 8px;
+
+            }
+
+
+            .mode-message {
+
+                font-size: 7px;
+
+            }
+
+
+            .core {
+
+                width:
+                    min(420px, 88vw);
+
+            }
+
+
+            .command-area {
+
+                width: 92vw;
+
+                margin-bottom: 45px;
+
+            }
+
+
+            .command-box {
+
+                height: 62px;
+
+            }
+
+
+            .mic-button,
+            .send-button {
+
+                width: 44px;
+                height: 44px;
+
+            }
+
+
+            .footer {
+
+                left: 15px;
+                right: 15px;
+
+                font-size: 6px;
+
+            }
+
+        }
+
+
+    </style>
 
 </head>
 
 
 <body>
 
-<!-- =====================================================
-     BACKGROUND
-====================================================== -->
 
-<div class="background"></div>
+    <!-- =====================================================
+         BACKGROUND
+    ====================================================== -->
 
-<div class="stars">
+    <div class="background"></div>
 
-    <div class="star"></div>
-    <div class="star"></div>
-    <div class="star"></div>
-    <div class="star"></div>
-    <div class="star"></div>
-    <div class="star"></div>
-    <div class="star"></div>
-    <div class="star"></div>
-
-</div>
+    <div class="corner top-left"></div>
+    <div class="corner top-right"></div>
+    <div class="corner bottom-left"></div>
+    <div class="corner bottom-right"></div>
 
 
-<div class="frame"></div>
+    <!-- =====================================================
+         TOKEN OVERLAY
+    ====================================================== -->
 
-
-<!-- =====================================================
-     HEADER
-====================================================== -->
-
-<header class="header">
-
-    <div class="logo">
-        EON
-    </div>
-
-    <div class="subtitle">
-        EXECUTIVE ORCHESTRATION NETWORK
-    </div>
-
-    <div class="motto">
-        THINK · ANALYZE · EXECUTE
-    </div>
-
-</header>
-
-
-<!-- =====================================================
-     TOP CONTROLS
-====================================================== -->
-
-<div class="controls">
-
-    <button
-        class="control"
-        id="voiceToggle"
-        title="Voice"
+    <div
+        class="token-overlay"
+        id="tokenOverlay"
     >
-        ◫
-    </button>
 
-    <button
-        class="control"
-        id="themeButton"
-        title="Core"
-    >
-        ☼
-    </button>
+        <div class="token-card">
 
-    <button
-        class="control"
-        id="settingsButton"
-        title="Settings"
-    >
-        ⚙
-    </button>
+            <h2>EON</h2>
 
-    <button
-        class="control"
-        id="fullscreenButton"
-        title="Fullscreen"
-    >
-        ⛶
-    </button>
+            <p>
+                Connect this interface to your EON API.
+                Enter the API token configured on your server.
+            </p>
 
-</div>
+            <input
+                id="tokenInput"
+                type="password"
+                placeholder="Enter EON API token..."
+                autocomplete="off"
+            >
 
+            <button
+                class="token-button"
+                id="tokenButton"
+            >
+                CONNECT
+            </button>
 
-<!-- =====================================================
-     LEFT SYSTEM PANEL
-====================================================== -->
+            <div
+                class="token-error"
+                id="tokenError"
+            ></div>
 
-<section class="status-panel">
-
-    <div class="status-title">
-
-        <span class="status-light"></span>
-
-        SYSTEM ONLINE
+        </div>
 
     </div>
 
-    <div class="status-row">
-        <span>AI CORE</span>
-        <span>ONLINE</span>
-    </div>
 
-    <div class="status-row">
-        <span>VOICE</span>
-        <span>ONLINE</span>
-    </div>
+    <!-- =====================================================
+         APP
+    ====================================================== -->
 
-    <div class="status-row">
-        <span>VISION</span>
-        <span>ONLINE</span>
-    </div>
-
-    <div class="status-row">
-        <span>MEMORY</span>
-        <span>ONLINE</span>
-    </div>
-
-    <div class="status-row">
-        <span>WEB ACCESS</span>
-        <span>ONLINE</span>
-    </div>
-
-    <div class="status-row">
-        <span>SECURITY</span>
-        <span>ACTIVE</span>
-    </div>
-
-</section>
+    <main class="app">
 
 
-<!-- =====================================================
-     RIGHT MODE PANEL
-====================================================== -->
+        <!-- =================================================
+             TOP
+        ================================================== -->
 
-<section class="mode-panel">
+        <header class="topbar">
 
-    <div class="mode-header">
 
-        <span class="mode-dot"></span>
+            <!-- SYSTEM -->
 
-        MODE:
-        <span id="modeText">
-            NORMAL
+            <section class="system-panel">
+
+                <div class="panel-title">
+
+                    <span class="status-dot"></span>
+
+                    SYSTEM ONLINE
+
+                </div>
+
+
+                <div class="system-row">
+
+                    <span>AI CORE</span>
+                    <span>ONLINE</span>
+
+                </div>
+
+
+                <div class="system-row">
+
+                    <span>VOICE</span>
+                    <span>ONLINE</span>
+
+                </div>
+
+
+                <div class="system-row">
+
+                    <span>VISION</span>
+                    <span>ONLINE</span>
+
+                </div>
+
+
+                <div class="system-row">
+
+                    <span>MEMORY</span>
+                    <span>ONLINE</span>
+
+                </div>
+
+
+                <div class="system-row">
+
+                    <span>WEB ACCESS</span>
+                    <span>ONLINE</span>
+
+                </div>
+
+
+                <div class="system-row">
+
+                    <span>SECURITY</span>
+                    <span>ACTIVE</span>
+
+                </div>
+
+            </section>
+
+
+            <!-- BRAND -->
+
+            <div class="brand">
+
+                <div class="brand-name">
+                    EON
+                </div>
+
+                <div class="brand-sub">
+                    THINK&nbsp;&nbsp;·&nbsp;&nbsp;ANALYZE&nbsp;&nbsp;·&nbsp;&nbsp;EXECUTE
+                </div>
+
+            </div>
+
+
+            <!-- MODE -->
+
+            <section class="mode-panel">
+
+                <div class="mode-header">
+
+                    <span class="mode-light"></span>
+
+                    MODE:
+
+                    <span
+                        class="mode-text"
+                        id="modeText"
+                    >
+                        NORMAL
+                    </span>
+
+                </div>
+
+
+                <div
+                    class="mode-message"
+                    id="modeMessage"
+                >
+                    "WITHIN LIMITS,
+                    BEYOND POSSIBILITIES."
+                </div>
+
+            </section>
+
+
+        </header>
+
+
+        <!-- =================================================
+             CORE
+        ================================================== -->
+
+        <section class="core-area">
+
+
+            <!-- LEFT VOICE -->
+
+            <div class="voice-indicator left">
+
+                <div class="voice-label">
+                    LISTENING...
+                </div>
+
+                <div class="wave">
+
+                    <span style="--i:1"></span>
+                    <span style="--i:2"></span>
+                    <span style="--i:3"></span>
+                    <span style="--i:4"></span>
+                    <span style="--i:5"></span>
+                    <span style="--i:6"></span>
+                    <span style="--i:7"></span>
+                    <span style="--i:8"></span>
+                    <span style="--i:9"></span>
+                    <span style="--i:10"></span>
+
+                </div>
+
+            </div>
+
+
+            <!-- ENERGY CORE -->
+
+            <div
+                class="core"
+                id="core"
+            >
+
+
+                <div class="core-aura"></div>
+
+
+                <div class="ring ring-4"></div>
+                <div class="ring ring-3"></div>
+                <div class="ring ring-2"></div>
+                <div class="ring ring-1"></div>
+
+
+                <div class="filament f1"></div>
+                <div class="filament f2"></div>
+                <div class="filament f3"></div>
+
+
+                <div class="energy-sphere"></div>
+
+
+                <div class="inner-energy"></div>
+
+
+                <!-- HOLLOW CENTER -->
+
+                <div class="hollow"></div>
+
+
+                <!-- PARTICLES -->
+
+                <div class="energy-particles">
+
+                    <div class="ep"></div>
+                    <div class="ep"></div>
+                    <div class="ep"></div>
+                    <div class="ep"></div>
+                    <div class="ep"></div>
+                    <div class="ep"></div>
+
+                </div>
+
+
+                <!-- BURST -->
+
+                <div
+                    class="energy-burst"
+                    id="energyBurst"
+                ></div>
+
+
+            </div>
+
+
+            <!-- RIGHT VOICE -->
+
+            <div class="voice-indicator right">
+
+                <div class="voice-label">
+                    SPEAK NOW
+                </div>
+
+                <div class="wave">
+
+                    <span style="--i:1"></span>
+                    <span style="--i:2"></span>
+                    <span style="--i:3"></span>
+                    <span style="--i:4"></span>
+                    <span style="--i:5"></span>
+                    <span style="--i:6"></span>
+                    <span style="--i:7"></span>
+                    <span style="--i:8"></span>
+                    <span style="--i:9"></span>
+                    <span style="--i:10"></span>
+
+                </div>
+
+            </div>
+
+
+        </section>
+
+
+        <!-- =================================================
+             COMMAND
+        ================================================== -->
+
+        <section class="command-area">
+
+
+            <div class="command-box">
+
+
+                <button
+                    class="mic-button"
+                    id="micButton"
+                    title="Speak to EON"
+                >
+
+                    <span class="mic-icon">
+                        🎙
+                    </span>
+
+                </button>
+
+
+                <input
+                    id="commandInput"
+                    type="text"
+                    placeholder="Type your command..."
+                    autocomplete="off"
+                >
+
+
+                <button
+                    class="send-button"
+                    id="sendButton"
+                    title="Send command"
+                >
+
+                    <span class="send-icon">
+                        ➤
+                    </span>
+
+                </button>
+
+
+            </div>
+
+
+            <div
+                class="ready-text"
+                id="readyText"
+            >
+                EON IS READY
+            </div>
+
+
+        </section>
+
+
+    </main>
+
+
+    <!-- =====================================================
+         FOOTER
+    ====================================================== -->
+
+    <footer class="footer">
+
+        <span>
+            V1.0
         </span>
 
-    </div>
+        <span>
+            EON CORE
+        </span>
 
-    <div class="mode-text">
+    </footer>
 
-        "WITHIN LIMITS.<br>
-        BEYOND POSSIBILITIES."
 
-    </div>
+    <script>
 
-</section>
+        /* =====================================================
+           ELEMENTS
+        ===================================================== */
 
+        const body =
+            document.body;
 
-<!-- =====================================================
-     ENERGY CORE
-====================================================== -->
+        const core =
+            document.getElementById(
+                "core"
+            );
 
-<div class="core">
+        const burst =
+            document.getElementById(
+                "energyBurst"
+            );
 
-    <div class="core-aura"></div>
+        const micButton =
+            document.getElementById(
+                "micButton"
+            );
 
-    <div class="ring ring-4"></div>
-    <div class="ring ring-3"></div>
-    <div class="ring ring-2"></div>
-    <div class="ring ring-1"></div>
+        const sendButton =
+            document.getElementById(
+                "sendButton"
+            );
 
-    <div class="filament f1"></div>
-    <div class="filament f2"></div>
-    <div class="filament f3"></div>
+        const commandInput =
+            document.getElementById(
+                "commandInput"
+            );
 
-    <div class="energy-sphere"></div>
+        const modeText =
+            document.getElementById(
+                "modeText"
+            );
 
-    <div class="inner-energy"></div>
+        const modeMessage =
+            document.getElementById(
+                "modeMessage"
+            );
 
-    <div class="hollow"></div>
+        const readyText =
+            document.getElementById(
+                "readyText"
+            );
 
-    <div class="energy-particles">
+        const tokenOverlay =
+            document.getElementById(
+                "tokenOverlay"
+            );
 
-        <div class="ep"></div>
-        <div class="ep"></div>
-        <div class="ep"></div>
-        <div class="ep"></div>
-        <div class="ep"></div>
-        <div class="ep"></div>
+        const tokenInput =
+            document.getElementById(
+                "tokenInput"
+            );
 
-    </div>
+        const tokenButton =
+            document.getElementById(
+                "tokenButton"
+            );
 
-</div>
+        const tokenError =
+            document.getElementById(
+                "tokenError"
+            );
 
 
-<!-- =====================================================
-     LEFT VOICE
-====================================================== -->
+        /* =====================================================
+           API
+        ===================================================== */
 
-<div class="voice-left">
+        const API_BASE =
+            window.location.origin;
 
-    <div class="voice-title">
-        LISTENING...
-    </div>
 
-    <div class="voice-bars">
+        let apiToken =
+            localStorage.getItem(
+                "eon_api_token"
+            );
 
-        <div class="bar"></div>
-        <div class="bar"></div>
-        <div class="bar"></div>
-        <div class="bar"></div>
-        <div class="bar"></div>
-        <div class="bar"></div>
-        <div class="bar"></div>
-        <div class="bar"></div>
-        <div class="bar"></div>
 
-    </div>
+        /* =====================================================
+           TOKEN
+        ===================================================== */
 
-</div>
+        function showTokenOverlay() {
 
+            tokenOverlay.classList.remove(
+                "hidden"
+            );
 
-<!-- =====================================================
-     RIGHT VOICE
-====================================================== -->
-
-<div class="voice-right">
-
-    <div class="voice-title">
-        SPEAK NOW
-    </div>
-
-    <div class="voice-bars">
-
-        <div class="bar"></div>
-        <div class="bar"></div>
-        <div class="bar"></div>
-        <div class="bar"></div>
-        <div class="bar"></div>
-        <div class="bar"></div>
-        <div class="bar"></div>
-        <div class="bar"></div>
-        <div class="bar"></div>
-
-    </div>
-
-</div>
-
-
-<!-- =====================================================
-     COMMAND
-====================================================== -->
-
-<div class="command-area">
-
-    <button
-        class="round-button mic"
-        id="micButton"
-        title="Voice input"
-    >
-        🎙
-    </button>
-
-    <input
-        id="commandInput"
-        class="command-box"
-        type="text"
-        placeholder="Type your command..."
-        autocomplete="off"
-    >
-
-    <button
-        class="round-button send"
-        id="sendButton"
-        title="Send"
-    >
-        ➤
-    </button>
-
-</div>
-
-
-<!-- =====================================================
-     RESPONSE
-====================================================== -->
-
-<div
-    class="response"
-    id="response"
->
-    EON IS READY
-</div>
-
-
-<!-- =====================================================
-     TOKEN SETTINGS
-====================================================== -->
-
-<div
-    class="token-panel"
-    id="tokenPanel"
->
-
-    <input
-        id="tokenInput"
-        class="token-input"
-        type="password"
-        placeholder="EON API TOKEN"
-    >
-
-    <button
-        id="tokenSave"
-        class="token-save"
-    >
-        SAVE TOKEN
-    </button>
-
-</div>
-
-
-<!-- =====================================================
-     FOOTER
-====================================================== -->
-
-<div class="footer-left">
-
-    V1.0<br>
-    BUILT FOR A HIGHER TOMORROW
-
-</div>
-
-<div class="footer-right">
-
-    HUMANITY × AI × A BETTER TOMORROW
-
-</div>
-
-
-<script>
-
-/* =========================================================
-   ELEMENTS
-========================================================= */
-
-const body =
-    document.body;
-
-const input =
-    document.getElementById(
-        "commandInput"
-    );
-
-const response =
-    document.getElementById(
-        "response"
-    );
-
-const micButton =
-    document.getElementById(
-        "micButton"
-    );
-
-const sendButton =
-    document.getElementById(
-        "sendButton"
-    );
-
-const settingsButton =
-    document.getElementById(
-        "settingsButton"
-    );
-
-const tokenPanel =
-    document.getElementById(
-        "tokenPanel"
-    );
-
-const tokenInput =
-    document.getElementById(
-        "tokenInput"
-    );
-
-const tokenSave =
-    document.getElementById(
-        "tokenSave"
-    );
-
-const modeText =
-    document.getElementById(
-        "modeText"
-    );
-
-
-/* =========================================================
-   TOKEN
-========================================================= */
-
-const savedToken =
-    localStorage.getItem(
-        "eon_api_token"
-    );
-
-if (savedToken) {
-
-    tokenInput.value =
-        savedToken;
-}
-
-
-/* =========================================================
-   SETTINGS
-========================================================= */
-
-settingsButton.addEventListener(
-    "click",
-    () => {
-
-        tokenPanel.classList.toggle(
-            "open"
-        );
-
-    }
-);
-
-
-tokenSave.addEventListener(
-    "click",
-    () => {
-
-        const token =
-            tokenInput.value.trim();
-
-        if (!token) {
-
-            response.textContent =
-                "API TOKEN REQUIRED";
-
-            return;
         }
 
-        localStorage.setItem(
-            "eon_api_token",
-            token
-        );
 
-        tokenPanel.classList.remove(
-            "open"
-        );
+        function hideTokenOverlay() {
 
-        response.textContent =
-            "SECURITY TOKEN SAVED";
+            tokenOverlay.classList.add(
+                "hidden"
+            );
 
-    }
-);
+        }
 
 
-/* =========================================================
-   NORMAL MODE
-========================================================= */
+        if (apiToken) {
 
-function normalMode() {
+            hideTokenOverlay();
 
-    body.classList.remove(
-        "alert"
-    );
-
-    modeText.textContent =
-        "NORMAL";
-
-    response.textContent =
-        "EON IS READY";
-}
+        }
 
 
-/* =========================================================
-   HIGH ALERT MODE
-========================================================= */
+        tokenButton.addEventListener(
+            "click",
+            async () => {
 
-function alertMode() {
-
-    body.classList.add(
-        "alert"
-    );
-
-    modeText.textContent =
-        "HIGH-ALERT";
-
-    response.textContent =
-        "LIMITERS... RELEASED.";
-}
+                const token =
+                    tokenInput.value.trim();
 
 
-/* =========================================================
-   MODE COMMAND
-========================================================= */
+                if (!token) {
 
-function detectMode(
-    command
-) {
+                    tokenError.textContent =
+                        "Please enter your API token.";
 
-    const text =
-        command
-        .toLowerCase()
-        .replace(
-            /[.,!?]/g,
-            ""
-        )
-        .trim();
+                    return;
 
-
-    if (
-        text.includes(
-            "eon has no limits"
-        )
-    ) {
-
-        alertMode();
-
-        return;
-    }
-
-
-    if (
-        text.includes(
-            "eon has limits"
-        )
-    ) {
-
-        normalMode();
-
-        return;
-    }
-}
-
-
-/* =========================================================
-   THINKING
-========================================================= */
-
-function thinking() {
-
-    body.classList.add(
-        "thinking"
-    );
-
-    response.textContent =
-        "EON IS THINKING";
-}
-
-
-/* =========================================================
-   STOP THINKING
-========================================================= */
-
-function stopThinking() {
-
-    body.classList.remove(
-        "thinking"
-    );
-}
-
-
-/* =========================================================
-   SEND COMMAND
-========================================================= */
-
-async function sendCommand(
-    command
-) {
-
-    command =
-        command.trim();
-
-    if (!command) {
-        return;
-    }
-
-
-    detectMode(
-        command
-    );
-
-
-    const token =
-        localStorage.getItem(
-            "eon_api_token"
-        );
-
-
-    if (!token) {
-
-        response.textContent =
-            "OPEN ⚙ AND ENTER YOUR API TOKEN";
-
-        tokenPanel.classList.add(
-            "open"
-        );
-
-        return;
-    }
-
-
-    thinking();
-
-
-    try {
-
-        const result =
-            await fetch(
-                "/api/command",
-                {
-
-                    method: "POST",
-
-                    headers: {
-
-                        "Content-Type":
-                            "application/json",
-
-                        "X-EON-Token":
-                            token
-                    },
-
-                    body:
-                        JSON.stringify({
-                            command:
-                                command
-                        })
                 }
-            );
 
 
-        const data =
-            await result.json();
+                apiToken =
+                    token;
 
 
-        stopThinking();
+                localStorage.setItem(
+                    "eon_api_token",
+                    token
+                );
 
 
-        if (
-            !data.success
-        ) {
-
-            response.textContent =
-                data.error ||
-                "COMMAND FAILED";
-
-            return;
-        }
+                tokenError.textContent =
+                    "";
 
 
-        response.textContent =
-            data.response ||
-            "COMMAND COMPLETED";
+                const success =
+                    await checkConnection();
 
 
-    } catch (error) {
+                if (success) {
 
-        stopThinking();
+                    hideTokenOverlay();
 
-        response.textContent =
-            "EON CONNECTION ERROR";
-    }
-}
+                }
 
+                else {
 
-/* =========================================================
-   SEND BUTTON
-========================================================= */
+                    localStorage.removeItem(
+                        "eon_api_token"
+                    );
 
-sendButton.addEventListener(
-    "click",
-    () => {
+                    apiToken = null;
 
-        const command =
-            input.value;
+                    tokenError.textContent =
+                        "Connection failed. Check your token.";
 
-        input.value = "";
+                }
 
-        sendCommand(
-            command
+            }
         );
-    }
-);
 
 
-/* =========================================================
-   ENTER KEY
-========================================================= */
+        /* =====================================================
+           API REQUEST
+        ===================================================== */
 
-input.addEventListener(
-    "keydown",
-    event => {
-
-        if (
-            event.key ===
-            "Enter"
+        async function apiRequest(
+            endpoint,
+            options = {}
         ) {
 
-            event.preventDefault();
+            const headers = {
 
-            sendButton.click();
+                "Content-Type":
+                    "application/json",
+
+                ...(options.headers || {})
+
+            };
+
+
+            if (apiToken) {
+
+                headers[
+                    "X-EON-Token"
+                ] = apiToken;
+
+            }
+
+
+            try {
+
+                const response =
+                    await fetch(
+                        API_BASE +
+                        endpoint,
+                        {
+                            ...options,
+                            headers
+                        }
+                    );
+
+
+                if (
+                    response.status === 401 ||
+                    response.status === 403
+                ) {
+
+                    localStorage.removeItem(
+                        "eon_api_token"
+                    );
+
+                    apiToken = null;
+
+                    showTokenOverlay();
+
+                    throw new Error(
+                        "Authentication failed."
+                    );
+
+                }
+
+
+                return await response.json();
+
+            }
+
+            catch (error) {
+
+                console.error(
+                    "EON API:",
+                    error
+                );
+
+                throw error;
+
+            }
+
         }
-    }
-);
 
 
-/* =========================================================
-   VOICE RECOGNITION
-========================================================= */
+        /* =====================================================
+           CONNECTION
+        ===================================================== */
 
-const SpeechRecognition =
-    window.SpeechRecognition ||
-    window.webkitSpeechRecognition;
+        async function checkConnection() {
 
-let recognition = null;
+            try {
 
-
-if (SpeechRecognition) {
-
-    recognition =
-        new SpeechRecognition();
-
-    recognition.continuous =
-        false;
-
-    recognition.interimResults =
-        true;
-
-    recognition.lang =
-        "en-IN";
+                const result =
+                    await apiRequest(
+                        "/api/status"
+                    );
 
 
-    recognition.onstart =
-        () => {
+                if (
+                    result &&
+                    result.success
+                ) {
 
-            body.classList.add(
-                "listening"
+                    readyText.textContent =
+                        "EON IS ONLINE";
+
+                    return true;
+
+                }
+
+            }
+
+            catch (error) {
+
+                return false;
+
+            }
+
+
+            return false;
+
+        }
+
+
+        /* =====================================================
+           BURST
+        ===================================================== */
+
+        function triggerBurst() {
+
+            if (!core || !burst) {
+
+                return;
+
+            }
+
+
+            core
+                .querySelectorAll(
+                    ".burst-particle"
+                )
+                .forEach(
+                    particle =>
+                        particle.remove()
+                );
+
+
+            burst.classList.remove(
+                "active"
             );
 
-            response.textContent =
-                "LISTENING...";
-        };
+
+            void burst.offsetWidth;
 
 
-    recognition.onresult =
-        event => {
+            burst.classList.add(
+                "active"
+            );
 
-            let transcript = "";
+
+            const particleCount =
+                55;
+
 
             for (
-                let i =
-                    event.resultIndex;
-
-                i <
-                    event.results.length;
-
+                let i = 0;
+                i < particleCount;
                 i++
             ) {
 
-                transcript +=
-                    event.results[i][0]
-                        .transcript;
-            }
+                const particle =
+                    document.createElement(
+                        "div"
+                    );
 
 
-            input.value =
-                transcript;
+                particle.className =
+                    "burst-particle";
 
 
-            detectMode(
-                transcript
-            );
-        };
+                const angle =
+                    Math.random() *
+                    Math.PI *
+                    2;
 
 
-    recognition.onend =
-        () => {
-
-            body.classList.remove(
-                "listening"
-            );
+                const distance =
+                    150 +
+                    Math.random() *
+                    330;
 
 
-            const command =
-                input.value.trim();
+                const x =
+                    Math.cos(angle) *
+                    distance;
 
 
-            if (command) {
+                const y =
+                    Math.sin(angle) *
+                    distance;
 
-                input.value = "";
 
-                sendCommand(
-                    command
+                particle.style.setProperty(
+                    "--x",
+                    `${x}px`
                 );
+
+
+                particle.style.setProperty(
+                    "--y",
+                    `${y}px`
+                );
+
+
+                const size =
+                    2 +
+                    Math.random() * 4;
+
+
+                particle.style.width =
+                    `${size}px`;
+
+
+                particle.style.height =
+                    `${size}px`;
+
+
+                particle.style.animationDelay =
+                    `${Math.random() * .2}s`;
+
+
+                core.appendChild(
+                    particle
+                );
+
+
+                requestAnimationFrame(
+                    () => {
+
+                        particle.classList.add(
+                            "fly"
+                        );
+
+                    }
+                );
+
             }
-        };
 
 
-    recognition.onerror =
-        () => {
-
-            body.classList.remove(
-                "listening"
+            body.classList.add(
+                "bursting"
             );
 
-            response.textContent =
-                "VOICE INPUT ERROR";
-        };
 
-}
+            setTimeout(
+                () => {
 
+                    body.classList.remove(
+                        "bursting"
+                    );
 
-/* =========================================================
-   MICROPHONE
-========================================================= */
+                    burst.classList.remove(
+                        "active"
+                    );
 
-micButton.addEventListener(
-    "click",
-    () => {
+                },
+                1400
+            );
 
-        if (!recognition) {
-
-            response.textContent =
-                "VOICE NOT SUPPORTED";
-
-            return;
         }
 
 
-        try {
+        /* =====================================================
+           HIGH ALERT MODE
+        ===================================================== */
 
-            recognition.start();
+        function activateNoLimits() {
 
-        } catch (error) {
+            triggerBurst();
 
-            /* Already listening */
+
+            setTimeout(
+                () => {
+
+                    body.classList.add(
+                        "alert"
+                    );
+
+
+                    modeText.textContent =
+                        "HIGH-ALERT";
+
+
+                    modeMessage.textContent =
+                        '"LIMITERS... RELEASED."';
+
+
+                    readyText.textContent =
+                        "HIGH-ALERT MODE";
+
+
+                },
+                180
+            );
+
         }
-    }
-);
 
 
-/* =========================================================
-   FULLSCREEN
-========================================================= */
+        /* =====================================================
+           NORMAL MODE
+        ===================================================== */
 
-document
-    .getElementById(
-        "fullscreenButton"
-    )
-    .addEventListener(
-        "click",
-        () => {
+        function activateLimits() {
+
+            triggerBurst();
+
+
+            setTimeout(
+                () => {
+
+                    body.classList.remove(
+                        "alert"
+                    );
+
+
+                    modeText.textContent =
+                        "NORMAL";
+
+
+                    modeMessage.textContent =
+                        '"WITHIN LIMITS, BEYOND POSSIBILITIES."';
+
+
+                    readyText.textContent =
+                        "EON IS READY";
+
+
+                },
+                180
+            );
+
+        }
+
+
+        /* =====================================================
+           MODE DETECTION
+        ===================================================== */
+
+        function detectMode(
+            command
+        ) {
+
+            const text =
+                command
+                    .toLowerCase()
+                    .replace(
+                        /[.,!?]/g,
+                        ""
+                    )
+                    .trim();
+
 
             if (
-                !document.fullscreenElement
+                text.includes(
+                    "eon has no limits"
+                )
             ) {
 
-                document.documentElement
-                    .requestFullscreen();
+                activateNoLimits();
 
-            } else {
+                return true;
 
-                document.exitFullscreen();
             }
+
+
+            if (
+                text.includes(
+                    "eon has limits"
+                )
+            ) {
+
+                activateLimits();
+
+                return true;
+
+            }
+
+
+            return false;
+
         }
-    );
 
 
-/* =========================================================
-   INITIALIZE
-========================================================= */
+        /* =====================================================
+           VOICE STATE
+        ===================================================== */
 
-normalMode();
+        function setListening(
+            active
+        ) {
 
-</script>
+            if (active) {
+
+                body.classList.add(
+                    "listening"
+                );
+
+                micButton.classList.add(
+                    "active"
+                );
+
+                readyText.textContent =
+                    "LISTENING...";
+
+            }
+
+            else {
+
+                body.classList.remove(
+                    "listening"
+                );
+
+                micButton.classList.remove(
+                    "active"
+                );
+
+                if (
+                    !body.classList.contains(
+                        "thinking"
+                    )
+                ) {
+
+                    readyText.textContent =
+                        "EON IS READY";
+
+                }
+
+            }
+
+        }
+
+
+        /* =====================================================
+           THINKING STATE
+        ===================================================== */
+
+        function setThinking(
+            active
+        ) {
+
+            if (active) {
+
+                body.classList.add(
+                    "thinking"
+                );
+
+                readyText.textContent =
+                    "THINKING...";
+
+            }
+
+            else {
+
+                body.classList.remove(
+                    "thinking"
+                );
+
+            }
+
+        }
+
+
+        /* =====================================================
+           SEND COMMAND
+        ===================================================== */
+
+        async function sendCommand() {
+
+            const command =
+                commandInput.value.trim();
+
+
+            if (!command) {
+
+                return;
+
+            }
+
+
+            /* MODE COMMANDS */
+
+            if (
+                detectMode(
+                    command
+                )
+            ) {
+
+                commandInput.value =
+                    "";
+
+                return;
+
+            }
+
+
+            setThinking(
+                true
+            );
+
+
+            try {
+
+                const result =
+                    await apiRequest(
+                        "/api/command",
+                        {
+
+                            method:
+                                "POST",
+
+                            body:
+                                JSON.stringify({
+                                    command:
+                                        command
+                                })
+
+                        }
+                    );
+
+
+                if (
+                    result &&
+                    result.success
+                ) {
+
+                    readyText.textContent =
+                        result.response ||
+                        "COMMAND COMPLETE";
+
+                }
+
+                else {
+
+                    readyText.textContent =
+                        result.error ||
+                        "EON COULD NOT PROCESS COMMAND";
+
+                }
+
+            }
+
+            catch (error) {
+
+                readyText.textContent =
+                    "API CONNECTION ERROR";
+
+            }
+
+
+            setThinking(
+                false
+            );
+
+
+            commandInput.value =
+                "";
+
+        }
+
+
+        /* =====================================================
+           SEND BUTTON
+        ===================================================== */
+
+        sendButton.addEventListener(
+            "click",
+            sendCommand
+        );
+
+
+        /* =====================================================
+           ENTER KEY
+        ===================================================== */
+
+        commandInput.addEventListener(
+            "keydown",
+            event => {
+
+                if (
+                    event.key ===
+                    "Enter"
+                ) {
+
+                    sendCommand();
+
+                }
+
+            }
+        );
+
+
+        /* =====================================================
+           BROWSER SPEECH RECOGNITION
+        ===================================================== */
+
+        const SpeechRecognition =
+            window.SpeechRecognition ||
+            window.webkitSpeechRecognition;
+
+
+        let recognition = null;
+
+
+        if (SpeechRecognition) {
+
+            recognition =
+                new SpeechRecognition();
+
+
+            recognition.continuous =
+                false;
+
+
+            recognition.interimResults =
+                true;
+
+
+            recognition.lang =
+                "en-IN";
+
+
+            recognition.onstart =
+                () => {
+
+                    setListening(
+                        true
+                    );
+
+                };
+
+
+            recognition.onresult =
+                event => {
+
+                    let finalText =
+                        "";
+
+
+                    let interimText =
+                        "";
+
+
+                    for (
+                        let i =
+                            event.resultIndex;
+
+                        i <
+                            event.results.length;
+
+                        i++
+                    ) {
+
+                        const transcript =
+                            event.results[i][0]
+                                .transcript;
+
+
+                        if (
+                            event.results[i]
+                                .isFinal
+                        ) {
+
+                            finalText +=
+                                transcript;
+
+                        }
+
+                        else {
+
+                            interimText +=
+                                transcript;
+
+                        }
+
+                    }
+
+
+                    if (interimText) {
+
+                        commandInput.value =
+                            interimText;
+
+                    }
+
+
+                    if (finalText) {
+
+                        commandInput.value =
+                            finalText;
+
+
+                        detectMode(
+                            finalText
+                        );
+
+
+                        sendCommand();
+
+                    }
+
+                };
+
+
+            recognition.onerror =
+                event => {
+
+                    console.error(
+                        "Speech recognition:",
+                        event.error
+                    );
+
+                    setListening(
+                        false
+                    );
+
+                };
+
+
+            recognition.onend =
+                () => {
+
+                    setListening(
+                        false
+                    );
+
+                };
+
+        }
+
+
+        /* =====================================================
+           MICROPHONE
+        ===================================================== */
+
+        micButton.addEventListener(
+            "click",
+            () => {
+
+                if (!recognition) {
+
+                    readyText.textContent =
+                        "VOICE INPUT NOT SUPPORTED";
+
+                    return;
+
+                }
+
+
+                try {
+
+                    recognition.start();
+
+                }
+
+                catch (error) {
+
+                    console.log(
+                        "Recognition already running."
+                    );
+
+                }
+
+            }
+        );
+
+
+        /* =====================================================
+           KEYBOARD VOICE SHORTCUT
+        ===================================================== */
+
+        document.addEventListener(
+            "keydown",
+            event => {
+
+                if (
+                    event.code ===
+                    "Space" &&
+                    document.activeElement !==
+                    commandInput
+                ) {
+
+                    event.preventDefault();
+
+                    if (recognition) {
+
+                        try {
+
+                            recognition.start();
+
+                        }
+
+                        catch (error) {}
+
+                    }
+
+                }
+
+            }
+        );
+
+
+        /* =====================================================
+           INITIAL CONNECTION
+        ===================================================== */
+
+        if (apiToken) {
+
+            checkConnection();
+
+        }
+
+
+        /* =====================================================
+           DEMO MODE
+           Allows the visual core to work even before API.
+        ===================================================== */
+
+        commandInput.addEventListener(
+            "input",
+            () => {
+
+                const text =
+                    commandInput.value
+                        .toLowerCase();
+
+
+                if (
+                    text.includes(
+                        "eon has no limits"
+                    )
+                ) {
+
+                    /* Don't activate repeatedly
+                       while typing. */
+
+                    if (
+                        text.trim() ===
+                        "eon has no limits"
+                    ) {
+
+                        activateNoLimits();
+
+                    }
+
+                }
+
+
+                if (
+                    text.trim() ===
+                    "eon has limits"
+                ) {
+
+                    activateLimits();
+
+                }
+
+            }
+        );
+
+
+    </script>
+
 
 </body>
+
 </html>
