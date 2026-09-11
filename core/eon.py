@@ -1,103 +1,101 @@
 """
 EON Core
 ========
-Central orchestration system for EON.
+Central orchestration layer for EON.
 
-Pipeline:
-
-INPUT
-  ↓
-ROUTER
-  ↓
-BRAIN / MODULE
-  ↓
-TOOLS / AGENTS / TASKS
-  ↓
-MEMORY / CONTEXT
-  ↓
-VOICE / UI
-  ↓
-OUTPUT
+EON coordinates:
+- Brain
+- Context
+- Router
+- Security
+- Memory
+- Tasks
+- Agents
+- Tools
+- Files
+- Web
+- Computer
+- Vision
+- Voice
+- UI
+- Diagnostics
 """
-from diagnostics import Diagnostics
-from core.brain import Brain
-from core.context import Context
-from core.router import Router
-
-from agents import AgentManager
-from memory import Memory
-from security import Security
-from tasks import TaskEngine
-from tools import ToolRegistry
-from files import FileManager
-from computer import ComputerController
-from web import WebManager
-from vision import Vision
-from voice import VoiceManager
-from ui import EONUI
 
 from config import Config
 
+from core.context import Context
+from core.router import Router
+from core.brain import Brain
+
+from security import Security
+from memory import Memory
+from tasks import TaskEngine
+from agents import AgentManager
+from files import FileManager
+from web import WebManager
+from tools import ToolRegistry
+from computer import ComputerControl
+from vision import Vision
+from voice import Voice
+from ui import UI
+from diagnostics import Diagnostics
+
 
 class EON:
-    """Main EON orchestration system."""
-
-    # =========================================================
-    # INITIALIZATION
-    # =========================================================
+    """Executive Orchestration Network."""
 
     def __init__(self):
 
-        # -----------------------------------------------------
-        # Core
-        # -----------------------------------------------------
+        # =====================================================
+        # CORE STATE
+        # =====================================================
+
+        self.running = False
+        self.mode = Config.MODE
+
+        # =====================================================
+        # CORE SYSTEMS
+        # =====================================================
 
         self.context = Context()
         self.router = Router()
+        self.security = Security()
 
-        # -----------------------------------------------------
-        # Security
-        # -----------------------------------------------------
-
-        self.security = Security(
-            require_confirmation=Config.REQUIRE_CONFIRMATION
-        )
-
-        # -----------------------------------------------------
-        # Memory
-        # -----------------------------------------------------
+        # =====================================================
+        # MEMORY
+        # =====================================================
 
         self.memory = Memory(
-            Config.MEMORY_DATABASE
+            database=Config.MEMORY_DATABASE
         )
 
-        # -----------------------------------------------------
-        # Task Engine
-        # -----------------------------------------------------
+        # =====================================================
+        # TASK ENGINE
+        # =====================================================
 
         self.tasks = TaskEngine()
 
-        # -----------------------------------------------------
-        # Agents
-        # -----------------------------------------------------
+        # =====================================================
+        # AGENTS
+        # =====================================================
 
         self.agents = AgentManager()
 
-        # -----------------------------------------------------
-        # Files
-        # -----------------------------------------------------
+        # =====================================================
+        # FILES
+        # =====================================================
 
         self.files = FileManager()
 
-        # -----------------------------------------------------
-        # Web
-        # -----------------------------------------------------
+        # =====================================================
+        # WEB
+        # =====================================================
 
         self.web = WebManager()
 
-        # -----------------------------------------------------
-        # Tools
-        # -----------------------------------------------------
+        # =====================================================
+        # TOOLS
+        # =====================================================
 
         self.tools = ToolRegistry(
             file_manager=self.files,
@@ -106,9 +104,9 @@ class EON:
             security=self.security,
         )
 
-        # -----------------------------------------------------
-        # Brain
-        # -----------------------------------------------------
+        # =====================================================
+        # BRAIN
+        # =====================================================
 
         self.brain = Brain(
             self.context,
@@ -118,41 +116,41 @@ class EON:
             tasks=self.tasks,
         )
 
-        # -----------------------------------------------------
-        # Computer
-        # -----------------------------------------------------
+        # =====================================================
+        # COMPUTER CONTROL
+        # =====================================================
 
-        self.computer = ComputerController(
+        self.computer = ComputerControl(
             security=self.security
         )
 
-        # -----------------------------------------------------
-        # Vision
-        # -----------------------------------------------------
+        # =====================================================
+        # VISION
+        # =====================================================
 
-        self.vision = Vision()
-
-        # -----------------------------------------------------
-        # Voice
-        # -----------------------------------------------------
-
-        self.voice = VoiceManager(
-            wake_word=Config.WAKE_WORD,
-            language=Config.VOICE_LANGUAGE,
+        self.vision = Vision(
+            ai_provider=self.brain.ai
         )
 
-        # -----------------------------------------------------
+        # =====================================================
+        # VOICE
+        # =====================================================
+
+        self.voice = Voice()
+
+        # =====================================================
         # UI
-        # -----------------------------------------------------
+        # =====================================================
 
-        self.ui = EONUI()
+        self.ui = UI()
 
-        # -----------------------------------------------------
-        # System State
-        # -----------------------------------------------------
+        # =====================================================
+        # DIAGNOSTICS
+        # =====================================================
 
-        self.running = False
-        self.mode = Config.MODE
+        self.diagnostics = Diagnostics(
+            self
+        )
 
     # =========================================================
     # START
@@ -160,56 +158,74 @@ class EON:
 
     def start(self):
 
+        if self.running:
+            return
+
         self.running = True
 
         self._boot_sequence()
 
         self.ui.idle()
 
+        print()
+        print("EON is ready.")
+        print("Type 'help' for commands.")
+        print("Type 'shutdown' to stop EON.")
+        print()
+
         while self.running:
 
             try:
 
-                command = input(
-                    "\nYou: "
-                ).strip()
+                command = input("YOU > ").strip()
 
                 if not command:
                     continue
+
+                command_lower = command.lower()
 
                 # -------------------------------------------------
                 # Shutdown
                 # -------------------------------------------------
 
-                if command.lower() in {
+                if command_lower in {
                     "exit",
                     "quit",
                     "shutdown",
+                    "stop eon",
                 }:
 
                     self.shutdown()
-                    continue
+                    break
 
                 # -------------------------------------------------
-                # High-alert mode
+                # Kill Mode
                 # -------------------------------------------------
 
-                if command.lower() == "kill mode":
+                if command_lower in {
+                    "kill mode",
+                    "activate kill mode",
+                    "enter kill mode",
+                }:
 
                     self.set_mode("KILL")
                     continue
 
                 # -------------------------------------------------
-                # Normal mode
+                # Normal Mode
                 # -------------------------------------------------
 
-                if command.lower() == "eon has limits":
+                if command_lower in {
+                    "eon has limits",
+                    "normal mode",
+                    "exit kill mode",
+                }:
 
                     self.set_mode("NORMAL")
                     continue
 
                 # -------------------------------------------------
-                # Central command handler
+                # Process command
                 # -------------------------------------------------
 
                 response = self.handle_command(
@@ -217,45 +233,38 @@ class EON:
                 )
 
                 print()
-
-                module = (
-                    self.context.get_module()
-                    or "brain"
-                )
-
-                print(
-                    f"EON [{module.upper()}]:"
-                )
-
-                print(response)
+                print(f"EON > {response}")
+                print()
 
             except KeyboardInterrupt:
 
+                print()
                 self.shutdown()
 
             except Exception as error:
 
+                print()
                 print(
-                    f"\nEON: System error → {error}"
+                    f"EON ERROR > {error}"
                 )
 
+                if self.diagnostics:
+                    self.diagnostics.record_error(
+                        "main_loop",
+                        error
+                    )
+
     # =========================================================
-    # CENTRAL COMMAND HANDLER
+    # COMMAND HANDLER
     # =========================================================
 
-    def handle_command(
-        self,
-        command
-    ):
+    def handle_command(self, command):
 
         if not command:
-
-            return (
-                "I didn't receive a command."
-            )
+            return "I didn't receive a command."
 
         # -----------------------------------------------------
-        # Save user command
+        # Store user command
         # -----------------------------------------------------
 
         self.context.add_message(
@@ -264,7 +273,34 @@ class EON:
         )
 
         # -----------------------------------------------------
-        # Route command
+        # Diagnostics command
+        # -----------------------------------------------------
+
+        if command.lower().strip() in {
+            "health",
+            "health check",
+            "diagnostics",
+            "run diagnostics",
+        }:
+
+            result = (
+                self.diagnostics
+                .run_health_check()
+            )
+
+            response = self._format_result(
+                result
+            )
+
+            self.context.add_message(
+                "assistant",
+                response
+            )
+
+            return response
+
+        # -----------------------------------------------------
+        # Route
         # -----------------------------------------------------
 
         module = self.router.route(
@@ -276,20 +312,34 @@ class EON:
         )
 
         # -----------------------------------------------------
-        # Process command
+        # Process
         # -----------------------------------------------------
 
-        response = self.process(
-            command,
-            module
-        )
+        try:
+
+            response = self.process(
+                command,
+                module
+            )
+
+        except Exception as error:
+
+            self.diagnostics.record_error(
+                module,
+                error
+            )
+
+            response = (
+                "I encountered an internal "
+                "error while processing that request."
+            )
 
         # -----------------------------------------------------
-        # Save EON response
+        # Store response
         # -----------------------------------------------------
 
         self.context.add_message(
-            "eon",
+            "assistant",
             response
         )
 
@@ -302,12 +352,14 @@ class EON:
     def process(
         self,
         command,
-        module
+        module=None
     ):
 
-        command_lower = (
-            command.lower().strip()
-        )
+        if module is None:
+
+            module = self.router.route(
+                command
+            )
 
         # -----------------------------------------------------
         # Brain
@@ -315,15 +367,9 @@ class EON:
 
         if module == "brain":
 
-            self.ui.thinking()
-
-            response = self.brain.think(
+            return self.brain.think(
                 command
             )
-
-            self.ui.speaking()
-
-            return response
 
         # -----------------------------------------------------
         # Memory
@@ -331,9 +377,8 @@ class EON:
 
         if module == "memory":
 
-            return self._process_memory(
-                command,
-                command_lower
+            return self.brain.think(
+                command
             )
 
         # -----------------------------------------------------
@@ -342,9 +387,8 @@ class EON:
 
         if module == "tasks":
 
-            return self._process_tasks(
-                command,
-                command_lower
+            return self.brain.think(
+                command
             )
 
         # -----------------------------------------------------
@@ -353,9 +397,8 @@ class EON:
 
         if module == "agents":
 
-            return self._process_agents(
-                command,
-                command_lower
+            return self.brain.think(
+                command
             )
 
         # -----------------------------------------------------
@@ -364,31 +407,8 @@ class EON:
 
         if module == "tools":
 
-            return self._process_tools(
-                command,
-                command_lower
-            )
-
-        # -----------------------------------------------------
-        # Files
-        # -----------------------------------------------------
-
-        if module == "files":
-
-            return self._process_files(
-                command,
-                command_lower
-            )
-
-        # -----------------------------------------------------
-        # Computer
-        # -----------------------------------------------------
-
-        if module == "computer":
-
-            return self._process_computer(
-                command,
-                command_lower
+            return self.brain.think(
+                command
             )
 
         # -----------------------------------------------------
@@ -397,9 +417,32 @@ class EON:
 
         if module == "web":
 
-            return self._process_web(
-                command,
-                command_lower
+            return self.brain.think(
+                command
+            )
+
+        # -----------------------------------------------------
+        # Files
+        # -----------------------------------------------------
+
+        if module == "files":
+
+            return self.brain.think(
+                command
+            )
+
+        # -----------------------------------------------------
+        # Computer
+        # -----------------------------------------------------
+
+        if module == "computer":
+
+            result = self.computer.handle_command(
+                command
+            )
+
+            return self._format_result(
+                result
             )
 
         # -----------------------------------------------------
@@ -408,9 +451,8 @@ class EON:
 
         if module == "vision":
 
-            return self._process_vision(
-                command,
-                command_lower
+            return self._handle_vision(
+                command
             )
 
         # -----------------------------------------------------
@@ -419,502 +461,139 @@ class EON:
 
         if module == "voice":
 
-            return self._process_voice(
-                command,
-                command_lower
+            return self._handle_voice(
+                command
             )
 
         # -----------------------------------------------------
-        # Fallback
+        # Default
         # -----------------------------------------------------
-
-        self.ui.thinking()
 
         return self.brain.think(
             command
         )
 
     # =========================================================
-    # MEMORY
-    # =========================================================
-
-    def _process_memory(
-        self,
-        command,
-        command_lower
-    ):
-
-        if (
-            "remember" in command_lower
-            or "save this" in command_lower
-        ):
-
-            success = self.memory.remember(
-                command
-            )
-
-            if success:
-
-                return (
-                    "Memory saved successfully."
-                )
-
-            return (
-                "I could not save that memory."
-            )
-
-        if (
-            "recall" in command_lower
-            or "what did i tell you"
-            in command_lower
-        ):
-
-            memories = (
-                self.memory.recall()
-            )
-
-            if not memories:
-
-                return (
-                    "I don't have any stored memories."
-                )
-
-            return self._format_memories(
-                memories
-            )
-
-        if "clear memory" in command_lower:
-
-            self.memory.clear()
-
-            return (
-                "All stored memories have been cleared."
-            )
-
-        return (
-            "Memory system online.\n"
-            f"Stored memories: "
-            f"{self.memory.count()}"
-        )
-
-    # =========================================================
-    # TASKS
-    # =========================================================
-
-    def _process_tasks(
-        self,
-        command,
-        command_lower
-    ):
-
-        if "list" in command_lower:
-
-            task_list = (
-                self.tasks.list_tasks()
-            )
-
-            if not task_list:
-
-                return (
-                    "There are no tasks."
-                )
-
-            lines = []
-
-            for task in task_list:
-
-                lines.append(
-                    f"#{task.task_id} | "
-                    f"{task.title} | "
-                    f"{task.status}"
-                )
-
-            return "\n".join(lines)
-
-        if (
-            "complete" in command_lower
-            and any(
-                character.isdigit()
-                for character in command
-            )
-        ):
-
-            task_id = (
-                self._extract_number(
-                    command
-                )
-            )
-
-            if task_id is None:
-
-                return (
-                    "I could not identify "
-                    "the task number."
-                )
-
-            success = (
-                self.tasks.complete_task(
-                    task_id
-                )
-            )
-
-            if success:
-
-                return (
-                    f"Task #{task_id} "
-                    "marked as completed."
-                )
-
-            return (
-                f"Task #{task_id} "
-                "was not found."
-            )
-
-        # -----------------------------------------------------
-        # Create new task
-        # -----------------------------------------------------
-
-        self.context.set_goal(
-            command
-        )
-
-        task = self.tasks.create_task(
-            title=command,
-            description="Created by EON.",
-        )
-
-        self.context.set_task(
-            task.task_id
-        )
-
-        return (
-            f"Goal registered: {command}\n"
-            f"Task #{task.task_id} created."
-        )
-
-    # =========================================================
-    # AGENTS
-    # =========================================================
-
-    def _process_agents(
-        self,
-        command,
-        command_lower
-    ):
-
-        if (
-            "list" in command_lower
-            or "available" in command_lower
-        ):
-
-            agents = (
-                self.agents.get_agent_names()
-            )
-
-            return (
-                "Available EON agents:\n"
-                + "\n".join(
-                    f"- {agent}"
-                    for agent in agents
-                )
-            )
-
-        selected_agent = (
-            self.agents.select_agent(
-                command
-            )
-        )
-
-        if selected_agent:
-
-            return self.agents.assign(
-                selected_agent,
-                command
-            )
-
-        return (
-            "Agent system is online.\n"
-            "Available agents: "
-            + ", ".join(
-                self.agents.get_agent_names()
-            )
-        )
-
-    # =========================================================
-    # TOOLS
-    # =========================================================
-
-    def _process_tools(
-        self,
-        command,
-        command_lower
-    ):
-
-        if (
-            "list" in command_lower
-            or "available" in command_lower
-        ):
-
-            return (
-                "Available EON tools:\n"
-                + "\n".join(
-                    f"- {tool}"
-                    for tool
-                    in self.tools.get_tool_names()
-                )
-            )
-
-        if "calculate" in command_lower:
-
-            expression = (
-                command_lower
-                .replace(
-                    "calculate",
-                    "",
-                    1
-                )
-                .strip()
-            )
-
-            return self.tools.execute(
-                "calculator",
-                expression
-            )
-
-        return (
-            "Tool registry is online.\n"
-            f"Available tools: "
-            f"{', '.join(self.tools.get_tool_names())}"
-        )
-
-    # =========================================================
-    # FILES
-    # =========================================================
-
-    def _process_files(
-        self,
-        command,
-        command_lower
-    ):
-
-        if (
-            "list" in command_lower
-            or "show files" in command_lower
-        ):
-
-            files = (
-                self.files.list_files()
-            )
-
-            if not files:
-
-                return "No files found."
-
-            return (
-                "Files and folders:\n"
-                + "\n".join(
-                    f"- {item}"
-                    for item in files
-                )
-            )
-
-        if "read" in command_lower:
-
-            filename = (
-                command_lower
-                .split(
-                    "read",
-                    1
-                )[-1]
-                .strip()
-            )
-
-            if not filename:
-
-                return (
-                    "Please specify a file."
-                )
-
-            return self.files.read_file(
-                filename
-            )
-
-        return (
-            "File system module is online.\n"
-            "Approved file operations are available."
-        )
-
-    # =========================================================
-    # COMPUTER
-    # =========================================================
-
-    def _process_computer(
-        self,
-        command,
-        command_lower
-    ):
-
-        if "calculator" in command_lower:
-
-            result = (
-                self.computer.open_application(
-                    "calculator"
-                )
-            )
-
-            return self._format_result(
-                result
-            )
-
-        if "notepad" in command_lower:
-
-            result = (
-                self.computer.open_application(
-                    "notepad"
-                )
-            )
-
-            return self._format_result(
-                result
-            )
-
-        if "paint" in command_lower:
-
-            result = (
-                self.computer.open_application(
-                    "paint"
-                )
-            )
-
-            return self._format_result(
-                result
-            )
-
-        if (
-            "system info" in command_lower
-            or "system information"
-            in command_lower
-        ):
-
-            return self._format_result(
-                self.computer.system_info()
-            )
-
-        return (
-            "Computer control is online.\n"
-            "Approved computer operations are available."
-        )
-
-    # =========================================================
-    # WEB
-    # =========================================================
-
-    def _process_web(
-        self,
-        command,
-        command_lower
-    ):
-
-        if (
-            "search" in command_lower
-            or "look up" in command_lower
-        ):
-
-            query = command
-
-            prefixes = [
-                "search",
-                "look up",
-                "search the web",
-            ]
-
-            for prefix in prefixes:
-
-                if query.lower().startswith(
-                    prefix
-                ):
-
-                    query = (
-                        query[
-                            len(prefix):
-                        ].strip()
-                    )
-
-                    break
-
-            if not query:
-
-                return (
-                    "Please specify what "
-                    "you want me to search for."
-                )
-
-            return self.tools.execute(
-                "web_search",
-                query
-            )
-
-        return (
-            "Web intelligence is online."
-        )
-
-    # =========================================================
     # VISION
     # =========================================================
 
-    def _process_vision(
+    def _handle_vision(
         self,
-        command,
-        command_lower
+        command
     ):
 
-        return (
-            "Vision system is online "
-            "and ready for visual input."
+        words = command.split()
+
+        image_path = None
+
+        for word in words:
+
+            if word.lower().endswith(
+                (
+                    ".jpg",
+                    ".jpeg",
+                    ".png",
+                    ".webp",
+                    ".bmp",
+                    ".gif",
+                )
+            ):
+
+                image_path = word.strip(
+                    "\"'"
+                )
+
+                break
+
+        if image_path is None:
+
+            return (
+                "Please provide an image path "
+                "for visual analysis."
+            )
+
+        result = self.vision.analyze(
+            image_path,
+            prompt=command
+        )
+
+        if not result.get(
+            "success",
+            False
+        ):
+
+            return result.get(
+                "error",
+                "Vision analysis failed."
+            )
+
+        return result.get(
+            "analysis",
+            "Vision analysis completed."
         )
 
     # =========================================================
     # VOICE
     # =========================================================
 
-    def _process_voice(
+    def _handle_voice(
         self,
-        command,
-        command_lower
+        command
     ):
+
+        command_lower = (
+            command.lower()
+        )
 
         if "listen" in command_lower:
 
-            self.ui.listening()
+            result = self.voice.listen()
 
-            result = (
-                self.voice.start_listening()
+            if result:
+                return result
+
+            return (
+                "Voice input is currently "
+                "unavailable."
             )
 
-            return self._format_result(
-                result
+        if "speak" in command_lower:
+
+            message = (
+                command
+                .lower()
+                .replace("speak", "", 1)
+                .strip()
             )
 
-        if "stop listening" in command_lower:
+            if not message:
 
-            result = (
-                self.voice.stop_listening()
+                return (
+                    "Tell me what you want "
+                    "me to say."
+                )
+
+            success = self.voice.speak(
+                message
             )
 
-            return self._format_result(
-                result
+            if success:
+
+                return (
+                    "Voice output completed."
+                )
+
+            return (
+                "Voice output is currently "
+                "unavailable."
             )
 
-        return (
-            "Voice system is online.\n"
-            f"Wake word: "
-            f"{self.voice.wake_word}\n"
-            "Voice authentication: "
-            f"{self.voice.voice_auth_enabled}"
+        return self.brain.think(
+            command
         )
 
     # =========================================================
-    # FORMAT RESULT
+    # RESULT FORMATTER
     # =========================================================
 
     def _format_result(
@@ -924,86 +603,48 @@ class EON:
 
         if isinstance(
             result,
+            str
+        ):
+
+            return result
+
+        if not isinstance(
+            result,
             dict
         ):
 
-            return "\n".join(
-                f"{key}: {value}"
-                for key, value
-                in result.items()
-            )
+            return str(result)
 
-        if isinstance(
-            result,
-            list
+        if result.get(
+            "success",
+            False
         ):
 
-            if not result:
+            if "response" in result:
+                return str(
+                    result["response"]
+                )
 
-                return "No results found."
+            if "analysis" in result:
+                return str(
+                    result["analysis"]
+                )
 
-            return "\n".join(
-                f"- {item}"
-                for item in result
-            )
+            if result.get(
+                "status"
+            ) == "HEALTHY":
 
-        return str(result)
+                return (
+                    "EON HEALTH: ALL "
+                    "SYSTEMS OPERATIONAL."
+                )
 
-    # =========================================================
-    # FORMAT MEMORIES
-    # =========================================================
+            return str(result)
 
-    def _format_memories(
-        self,
-        memories
-    ):
-
-        formatted = []
-
-        for memory in memories:
-
-            memory_id = memory[0]
-            category = memory[1]
-            content = memory[2]
-
-            formatted.append(
-                f"[{memory_id}] "
-                f"{category}: "
-                f"{content}"
-            )
-
-        return "\n".join(
-            formatted
+        return result.get(
+            "error",
+            str(result)
         )
-
-    # =========================================================
-    # NUMBER EXTRACTION
-    # =========================================================
-
-    def _extract_number(
-        self,
-        text
-    ):
-
-        current_number = ""
-
-        for character in text:
-
-            if character.isdigit():
-
-                current_number += character
-
-            elif current_number:
-
-                break
-
-        if current_number:
-
-            return int(
-                current_number
-            )
-
-        return None
 
     # =========================================================
     # MODE
@@ -1016,9 +657,16 @@ class EON:
 
         mode = mode.upper()
 
-        if mode == "KILL":
+        if mode not in {
+            "NORMAL",
+            "KILL",
+        }:
 
-            self.mode = "KILL"
+            return False
+
+        self.mode = mode
+
+        if mode == "KILL":
 
             self.ui.set_mode(
                 "KILL"
@@ -1026,19 +674,16 @@ class EON:
 
             self.ui.alert()
 
+            print()
             print(
-                "\nEON: "
-                "LIMITERS... RELEASED."
+                "EON > LIMITERS... RELEASED."
             )
-
             print(
-                "EON: "
-                "HIGH-ALERT MODE ACTIVE."
+                "EON > HIGH-ALERT MODE ACTIVE."
             )
+            print()
 
         else:
-
-            self.mode = "NORMAL"
 
             self.ui.set_mode(
                 "NORMAL"
@@ -1046,133 +691,76 @@ class EON:
 
             self.ui.idle()
 
+            print()
             print(
-                "\nEON: "
-                "NORMAL MODE RESTORED."
+                "EON > EON HAS LIMITS."
             )
+            print(
+                "EON > NORMAL MODE RESTORED."
+            )
+            print()
 
-            print(
-                "EON HAS LIMITS."
-            )
+        return True
 
     # =========================================================
-    # BOOT SEQUENCE
+    # BOOT
     # =========================================================
 
     def _boot_sequence(self):
 
         print()
-
         print(
-            "========================================"
+            "===================================="
+        )
+        print(
+            "        EON INITIALIZING"
+        )
+        print(
+            "===================================="
         )
 
         print(
-            "                 E O N"
+            "Core systems      : ONLINE"
         )
 
         print(
-            "     EXECUTIVE ORCHESTRATION NETWORK"
+            "Brain             : ONLINE"
         )
 
         print(
-            "========================================"
-        )
-
-        print()
-
-        print(
-            "EON SYSTEM ONLINE"
+            "Memory            : ONLINE"
         )
 
         print(
-            "----------------------------------------"
+            "Task Engine       : ONLINE"
         )
 
         print(
-            "CORE       : ONLINE"
+            "Agent System      : ONLINE"
         )
 
         print(
-            "BRAIN      : READY"
+            "Tools             : ONLINE"
         )
 
         print(
-            "ROUTER     : READY"
+            "Security          : ONLINE"
         )
 
         print(
-            "CONTEXT    : READY"
+            "Vision            : ONLINE"
         )
 
         print(
-            "MEMORY     : "
-            + self._status_text(
-                self.memory.status()["status"]
-            )
+            "Voice             : ONLINE"
         )
 
         print(
-            "SECURITY   : "
-            + self._status_text(
-                "ONLINE"
-                if self.security.enabled
-                else "OFFLINE"
-            )
+            "Diagnostics       : ONLINE"
         )
 
         print(
-            "TASKS      : READY"
-        )
-
-        print(
-            "AGENTS     : READY"
-        )
-
-        print(
-            "TOOLS      : READY"
-        )
-
-        print(
-            "FILES      : READY"
-        )
-
-        print(
-            "COMPUTER   : READY"
-        )
-
-        print(
-            "WEB        : READY"
-        )
-
-        print(
-            "VISION     : READY"
-        )
-
-        print(
-            "VOICE      : READY"
-        )
-
-        print(
-            "UI         : READY"
-        )
-
-        print(
-            "----------------------------------------"
-        )
-
-        print(
-            f"MODE       : {self.mode}"
-        )
-
-        print(
-            "----------------------------------------"
-        )
-
-        print()
-
-        print(
-            "Awaiting command..."
+            "===================================="
         )
 
     # =========================================================
@@ -1186,23 +774,31 @@ class EON:
             "name":
                 Config.NAME,
 
+            "full_name":
+                Config.FULL_NAME,
+
             "version":
                 Config.VERSION,
+
+            "status":
+                "ONLINE"
+                if self.running
+                else "OFFLINE",
 
             "mode":
                 self.mode,
 
-            "running":
-                self.running,
-
             "context":
                 self.context.status(),
 
-            "memory":
-                self.memory.status(),
+            "router":
+                self.router.status(),
 
             "security":
                 self.security.status(),
+
+            "memory":
+                self.memory.status(),
 
             "tasks":
                 self.tasks.status(),
@@ -1213,11 +809,11 @@ class EON:
             "tools":
                 self.tools.status(),
 
-            "computer":
-                self.computer.status(),
-
             "web":
                 self.web.status(),
+
+            "computer":
+                self.computer.status(),
 
             "vision":
                 self.vision.status(),
@@ -1227,20 +823,13 @@ class EON:
 
             "ui":
                 self.ui.status(),
+
+            "brain":
+                self.brain.status(),
+
+            "diagnostics":
+                self.diagnostics.status(),
         }
-
-    # =========================================================
-    # STATUS TEXT
-    # =========================================================
-
-    def _status_text(
-        self,
-        status
-    ):
-
-        return str(
-            status
-        ).upper()
 
     # =========================================================
     # SHUTDOWN
@@ -1248,26 +837,32 @@ class EON:
 
     def shutdown(self):
 
-        self.running = False
-
-        self.voice.stop_listening()
-
-        self.ui.shutdown()
+        if not self.running:
+            return
 
         print()
-
         print(
-            "========================================"
+            "EON > Shutting down..."
         )
 
-        print(
-            "          EON SYSTEM SHUTDOWN"
-        )
+        self.running = False
+
+        try:
+
+            self.voice.stop_speaking()
+
+        except Exception:
+
+            pass
+
+        try:
+
+            self.ui.shutdown()
+
+        except Exception:
+
+            pass
 
         print(
-            "          SESSION TERMINATED"
-        )
-
-        print(
-            "========================================"
+            "EON > Systems offline."
         )
