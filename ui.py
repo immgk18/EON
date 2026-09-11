@@ -1,22 +1,39 @@
 """
 EON User Interface
 ==================
-Minimal visual interface for EON.
+Visual state and presentation layer for EON.
 
 Design:
-- Black background
-- Radiant golden orb
-- Small status text
-- Different visual states
+- Dark / minimal interface
+- Central EON orb
+- System states
+- NORMAL and KILL modes
+- Small status captions
+- No heavy GUI dependency
+
+A graphical desktop/mobile UI can be connected
+to this interface later.
 """
+
+import os
+import sys
+import time
 
 
 class EONUI:
-    """Controls EON's visual interface."""
+    """Controls EON's visual interface state."""
+
+    # =========================================================
+    # INITIALIZATION
+    # =========================================================
 
     def __init__(self):
+
         self.mode = "NORMAL"
+
         self.state = "IDLE"
+
+        self.running = True
 
         self.states = {
             "IDLE": "EON STANDBY",
@@ -26,103 +43,344 @@ class EONUI:
             "ALERT": "HIGH ALERT",
         }
 
-    # ─────────────────────────────────────
-    # STATE CONTROL
-    # ─────────────────────────────────────
+        self.mode_descriptions = {
+            "NORMAL":
+                "EON HAS LIMITS",
+
+            "KILL":
+                "LIMITERS... RELEASED",
+        }
+
+        self.orbs = {
+            "NORMAL": {
+                "IDLE": "●",
+                "LISTENING": "◉",
+                "THINKING": "◉",
+                "SPEAKING": "◉",
+                "ALERT": "◉",
+            },
+
+            "KILL": {
+                "IDLE": "◉",
+                "LISTENING": "◎",
+                "THINKING": "◎",
+                "SPEAKING": "◎",
+                "ALERT": "◉",
+            },
+        }
+
+    # =========================================================
+    # STATE MANAGEMENT
+    # =========================================================
 
     def set_state(self, state):
-        """Change the visual state."""
 
-        state = state.upper()
+        if not state:
+
+            self.state = "IDLE"
+
+            return
+
+        state = state.upper().strip()
 
         if state not in self.states:
+
             state = "IDLE"
 
         self.state = state
 
-    def set_mode(self, mode):
-        """Change EON's visual mode."""
+    def get_state(self):
 
-        mode = mode.upper()
+        return self.state
+
+    # =========================================================
+    # MODE MANAGEMENT
+    # =========================================================
+
+    def set_mode(self, mode):
+
+        if not mode:
+
+            self.mode = "NORMAL"
+
+            return
+
+        mode = mode.upper().strip()
 
         if mode not in {"NORMAL", "KILL"}:
+
             mode = "NORMAL"
 
         self.mode = mode
 
-    # ─────────────────────────────────────
-    # DISPLAY
-    # ─────────────────────────────────────
+        # High-alert mode gets ALERT state.
+        if mode == "KILL":
 
-    def render(self):
-        """Return the current UI representation."""
+            self.set_state("ALERT")
+
+        else:
+
+            self.set_state("IDLE")
+
+    def get_mode(self):
+
+        return self.mode
+
+    # =========================================================
+    # ORB
+    # =========================================================
+
+    def get_orb(self):
+
+        return self.orbs[
+            self.mode
+        ][
+            self.state
+        ]
+
+    # =========================================================
+    # CAPTION
+    # =========================================================
+
+    def get_caption(self):
 
         if self.mode == "KILL":
-            orb = "◉"
-            caption = "EON HIGH-ALERT"
+
+            return "EON HIGH-ALERT"
+
+        return self.states[
+            self.state
+        ]
+
+    # =========================================================
+    # CLEAR SCREEN
+    # =========================================================
+
+    def clear_screen(self):
+
+        if sys.platform.startswith("win"):
+
+            os.system("cls")
+
         else:
-            orb = "●"
-            caption = self.states[self.state]
+
+            os.system("clear")
+
+    # =========================================================
+    # HEADER
+    # =========================================================
+
+    def render_header(self):
+
+        return (
+            "========================================\n"
+            "                 E O N                  \n"
+            "     EXECUTIVE ORCHESTRATION NETWORK    \n"
+            "========================================"
+        )
+
+    # =========================================================
+    # ORB RENDER
+    # =========================================================
+
+    def render_orb(self):
+
+        orb = self.get_orb()
 
         return (
             "\n"
-            "          ╔══════════════╗\n"
-            "                 " + orb + "\n"
-            "          ╚══════════════╝\n"
-            "\n"
-            f"              {caption}\n"
-            f"              MODE: {self.mode}\n"
+            "                 ╱╲\n"
+            f"                 {orb}\n"
+            "                 ╲╱\n"
         )
 
+    # =========================================================
+    # MAIN RENDER
+    # =========================================================
+
+    def render(self):
+
+        caption = self.get_caption()
+
+        mode_description = (
+            self.mode_descriptions[
+                self.mode
+            ]
+        )
+
+        return (
+            "\n"
+            + self.render_header()
+            + "\n"
+            + self.render_orb()
+            + "\n"
+            f"              {caption}\n"
+            f"              MODE: {self.mode}\n"
+            f"              {mode_description}\n"
+            "\n"
+        )
+
+    # =========================================================
+    # DISPLAY
+    # =========================================================
+
     def show(self):
-        """Display the EON interface."""
 
-        print(self.render())
+        print(
+            self.render()
+        )
 
-    # ─────────────────────────────────────
+    # =========================================================
     # VISUAL STATES
-    # ─────────────────────────────────────
+    # =========================================================
 
     def idle(self):
-        """Set EON to idle."""
 
         self.set_state("IDLE")
+
         self.show()
 
     def listening(self):
-        """Set EON to listening."""
 
         self.set_state("LISTENING")
+
         self.show()
 
     def thinking(self):
-        """Set EON to thinking."""
 
         self.set_state("THINKING")
+
         self.show()
 
     def speaking(self):
-        """Set EON to speaking."""
 
         self.set_state("SPEAKING")
+
         self.show()
 
     def alert(self):
-        """Set EON to high alert."""
 
         self.set_state("ALERT")
+
         self.show()
 
-    # ─────────────────────────────────────
+    # =========================================================
+    # ANIMATION FRAME
+    # =========================================================
+
+    def animation_frame(
+        self,
+        frame=0
+    ):
+        """
+        Generate a lightweight animated orb frame.
+
+        This is intentionally terminal-safe.
+        A graphical renderer can replace this later.
+        """
+
+        normal_frames = [
+            "·",
+            "•",
+            "●",
+            "◉",
+            "●",
+            "•",
+        ]
+
+        kill_frames = [
+            "·",
+            "○",
+            "◎",
+            "◉",
+            "◎",
+            "○",
+        ]
+
+        frames = (
+            kill_frames
+            if self.mode == "KILL"
+            else normal_frames
+        )
+
+        orb = frames[
+            frame % len(frames)
+        ]
+
+        return (
+            "\n"
+            "                 ╱╲\n"
+            f"                 {orb}\n"
+            "                 ╲╱\n"
+        )
+
+    def animate(
+        self,
+        frames=6,
+        delay=0.08
+    ):
+        """
+        Run a small terminal animation.
+        """
+
+        for frame in range(frames):
+
+            self.clear_screen()
+
+            print(
+                self.render_header()
+            )
+
+            print(
+                self.animation_frame(
+                    frame
+                )
+            )
+
+            print(
+                f"              {self.get_caption()}"
+            )
+
+            print(
+                f"              MODE: {self.mode}"
+            )
+
+            time.sleep(delay)
+
+    # =========================================================
     # STATUS
-    # ─────────────────────────────────────
+    # =========================================================
 
     def status(self):
-        """Return UI status."""
 
         return {
-            "mode": self.mode,
-            "state": self.state,
-            "caption": self.states[self.state],
-            "status": "ONLINE",
+            "mode":
+                self.mode,
+
+            "state":
+                self.state,
+
+            "caption":
+                self.get_caption(),
+
+            "orb":
+                self.get_orb(),
+
+            "running":
+                self.running,
+
+            "status":
+                "ONLINE",
         }
+
+    # =========================================================
+    # SHUTDOWN
+    # =========================================================
+
+    def shutdown(self):
+
+        self.running = False
+
+        self.set_state("IDLE")
+
+        return True
