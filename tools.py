@@ -1,12 +1,12 @@
 """
 EON Tool System
 ===============
-Central registry for EON's capabilities and tools.
+Central registry for EON capabilities.
 """
 
 
 class Tool:
-    """Represents a single EON tool."""
+    """Represents a single tool available to EON."""
 
     def __init__(self, name, description, function=None):
         self.name = name
@@ -18,24 +18,62 @@ class Tool:
         """Execute the tool."""
 
         if not self.enabled:
-            return "Tool is currently disabled."
+            return f"Tool '{self.name}' is disabled."
 
         if self.function is None:
-            return f"Tool '{self.name}' is not implemented yet."
+            return (
+                f"Tool '{self.name}' is registered "
+                "but has no implementation yet."
+            )
 
         return self.function(*args, **kwargs)
 
 
 class ToolRegistry:
-    """Manages all tools available to EON."""
+    """Central registry for EON tools."""
 
     def __init__(self):
         self.tools = {}
 
+        self.register_core_tools()
+
+    def register_core_tools(self):
+        """Register EON's initial tool interfaces."""
+
+        self.register(
+            "calculator",
+            "Performs mathematical calculations."
+        )
+
+        self.register(
+            "web_search",
+            "Searches the web for information."
+        )
+
+        self.register(
+            "file_reader",
+            "Reads supported files."
+        )
+
+        self.register(
+            "image_analyzer",
+            "Analyzes images using the vision system."
+        )
+
+        self.register(
+            "system_info",
+            "Retrieves basic computer information."
+        )
+
+        self.register(
+            "task_manager",
+            "Creates and manages EON tasks."
+        )
+
     def register(self, name, description, function=None):
         """Register a new tool."""
 
-        if name in self.tools:
+        if not name:
             return False
 
         self.tools[name] = Tool(
@@ -56,7 +94,7 @@ class ToolRegistry:
         return True
 
     def get(self, name):
-        """Get a registered tool."""
+        """Retrieve a tool."""
 
         return self.tools.get(name)
 
@@ -98,7 +136,7 @@ class ToolRegistry:
         return list(self.tools.values())
 
     def get_tool_names(self):
-        """Return the names of all registered tools."""
+        """Return tool names."""
 
         return list(self.tools.keys())
 
@@ -106,6 +144,7 @@ class ToolRegistry:
         """Return tool registry status."""
 
         total = len(self.tools)
+
         enabled = sum(
             1
             for tool in self.tools.values()
@@ -113,6 +152,7 @@ class ToolRegistry:
         )
 
         return {
+            "status": "ONLINE",
             "total_tools": total,
             "enabled_tools": enabled,
             "disabled_tools": total - enabled,
