@@ -34,7 +34,7 @@ from agents import AgentManager
 from files import FileManager
 from web import WebManager
 from tools import ToolRegistry
-from computer import ComputerControl
+from computer import ComputerController
 from vision import Vision
 from voice import Voice
 from ui import UI
