@@ -17,24 +17,62 @@ class Config:
     NAME = "EON"
     FULL_NAME = "Executive Orchestration Network"
     VERSION = "4.0"
-    MODE = os.getenv("EON_MODE", "NORMAL")
+
+    MODE = os.getenv(
+        "EON_MODE",
+        "NORMAL"
+    ).upper()
 
     # ─────────────────────────────────────
     # AI ENGINE
     # ─────────────────────────────────────
 
-    AI_PROVIDER = os.getenv("AI_PROVIDER", "local")
-    AI_MODEL = os.getenv("AI_MODEL", "")
+    # Provider can be changed without modifying
+    # the rest of EON.
+    AI_PROVIDER = os.getenv(
+        "AI_PROVIDER",
+        "local"
+    )
+
+    # Actual model name will be configured later.
+    AI_MODEL = os.getenv(
+        "AI_MODEL",
+        ""
+    )
+
+    AI_TEMPERATURE = float(
+        os.getenv(
+            "AI_TEMPERATURE",
+            "0.7"
+        )
+    )
+
+    AI_MAX_TOKENS = int(
+        os.getenv(
+            "AI_MAX_TOKENS",
+            "2048"
+        )
+    )
 
     # ─────────────────────────────────────
     # VOICE
     # ─────────────────────────────────────
 
     VOICE_ENABLED = True
-    VOICE_LANGUAGE = os.getenv("VOICE_LANGUAGE", "en-IN")
-    WAKE_WORD = os.getenv("WAKE_WORD", "EON")
 
-    # Voice identity
+    VOICE_LANGUAGE = os.getenv(
+        "VOICE_LANGUAGE",
+        "en-IN"
+    )
+
+    WAKE_WORD = os.getenv(
+        "WAKE_WORD",
+        "EON"
+    )
+
+    # Voice identity is a future biometric
+    # integration. Sensitive actions still
+    # require security confirmation.
     VOICE_AUTH_ENABLED = True
 
     # ─────────────────────────────────────
@@ -42,16 +80,29 @@ class Config:
     # ─────────────────────────────────────
 
     MEMORY_ENABLED = True
+
     MEMORY_DATABASE = os.getenv(
         "MEMORY_DATABASE",
         "eon.db"
     )
 
     # ─────────────────────────────────────
-    # VISION
+    # TASK ENGINE
     # ─────────────────────────────────────
 
-    VISION_ENABLED = True
+    TASK_ENGINE_ENABLED = True
+
+    # ─────────────────────────────────────
+    # AGENT SYSTEM
+    # ─────────────────────────────────────
+
+    AGENTS_ENABLED = True
+
+    # ─────────────────────────────────────
+    # TOOL SYSTEM
+    # ─────────────────────────────────────
+
+    TOOLS_ENABLED = True
 
     # ─────────────────────────────────────
     # WEB INTELLIGENCE
@@ -60,21 +111,26 @@ class Config:
     WEB_ENABLED = True
 
     # ─────────────────────────────────────
+    # VISION
+    # ─────────────────────────────────────
+
+    VISION_ENABLED = True
+
+    # ─────────────────────────────────────
+    # FILE SYSTEM
+    # ─────────────────────────────────────
+
+    FILES_ENABLED = True
+
+    # ─────────────────────────────────────
     # COMPUTER CONTROL
     # ─────────────────────────────────────
 
     COMPUTER_CONTROL_ENABLED = True
 
-    # Sensitive computer actions should require
-    # additional confirmation.
+    # Protected actions must require
+    # authorization.
     REQUIRE_CONFIRMATION = True
-
-    # ─────────────────────────────────────
-    # TASK / AGENT SYSTEM
-    # ─────────────────────────────────────
-
-    TASK_ENGINE_ENABLED = True
-    AGENTS_ENABLED = True
 
     # ─────────────────────────────────────
     # SECURITY
@@ -82,23 +138,24 @@ class Config:
 
     SECURITY_ENABLED = True
 
-    # Never allow high-risk operations to bypass
-    # the security layer.
     SECURITY_CONFIRMATION_REQUIRED = True
 
     # ─────────────────────────────────────
-    # UI
+    # USER INTERFACE
     # ─────────────────────────────────────
 
     UI_ENABLED = True
 
-    # Minimal EON interface
     UI_THEME = "DARK"
+
+    # Minimal EON visual identity.
     ORB_COLOR = "GOLD"
+
+    # Keep the main interface clean.
     UI_SHOW_SYSTEM_GRAPHS = False
 
     # ─────────────────────────────────────
-    # SERVER
+    # SERVER / PHONE API
     # ─────────────────────────────────────
 
     HOST = os.getenv(
@@ -113,21 +170,24 @@ class Config:
         )
     )
 
-    DEBUG = os.getenv(
-        "DEBUG",
-        "false"
-    ).lower() == "true"
+    DEBUG = (
+        os.getenv(
+            "DEBUG",
+            "false"
+        ).lower()
+        == "true"
+    )
 
     # ─────────────────────────────────────
     # FUTURE HARDWARE
     # ─────────────────────────────────────
 
-    # ESP/hardware is intentionally disabled
-    # for the current software build.
+    # ESP32 / hardware intentionally excluded
+    # from the current EON software build.
     HARDWARE_ENABLED = False
 
 
 def get_config():
-    """Return the EON configuration class."""
+    """Return the EON configuration."""
 
     return Config
