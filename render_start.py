@@ -1,38 +1,18 @@
 """
-EON Render Startup
-==================
-Cloud deployment entry point.
+EON Render Start
+================
+Production entry point for Render.
 """
 
-from core.eon import EON
 from api import EONAPI
 
 
-# Create EON Core
-eon = EON()
+def main():
 
-# Create API
-api = EONAPI(eon)
+    server = EONAPI()
 
-# Render exposes the PORT environment variable.
-# Flask will use the port assigned by Render.
-
-application = api.app
+    server.run()
 
 
 if __name__ == "__main__":
-
-    import os
-
-    port = int(
-        os.getenv(
-            "PORT",
-            "5000"
-        )
-    )
-
-    application.run(
-        host="0.0.0.0",
-        port=port,
-        debug=False
-    )
+    main()
