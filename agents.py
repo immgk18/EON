@@ -1,485 +1,590 @@
 """
-EON Memory
+EON Agents
 ==========
-Persistent intelligent memory system using SQLite.
+Multi-agent coordination layer for EON.
 
-Memory types:
-- Preference
-- Project
-- Fact
-- Instruction
-- General
+Agents are specialized workers coordinated by EON.
+
+Default agents:
+- Researcher
+- Coder
+- Analyst
+- Planner
+- Document
 
 The system supports:
-- Saving memories
-- Searching memories
-- Retrieving recent memories
-- Categorization
-- Updating memories
-- Forgetting individual memories
-- Clearing memories
+- Agent registration
+- Agent removal
+- Task assignment
+- Agent status
+- Multi-agent workflows
+- Execution history
 """
 
 
-import sqlite3
 from datetime import datetime
 
 
-class Memory:
-    """Persistent memory manager for EON."""
+# =============================================================
+# AGENT
+# =============================================================
 
-    VALID_CATEGORIES = {
-        "preference",
-        "project",
-        "fact",
-        "instruction",
-        "general",
-    }
+class Agent:
+    """Represents one specialized EON agent."""
 
-    def __init__(self, database="eon.db"):
-
-        self.database = database
-
-        self._initialize()
-
-    # =========================================================
-    # DATABASE CONNECTION
-    # =========================================================
-
-    def _connect(self):
-
-        return sqlite3.connect(
-            self.database
-        )
-
-    # =========================================================
-    # INITIALIZE DATABASE
-    # =========================================================
-
-    def _initialize(self):
-
-        connection = self._connect()
-        cursor = connection.cursor()
-
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS memories (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                category TEXT NOT NULL,
-                content TEXT NOT NULL,
-                created_at TEXT NOT NULL,
-                updated_at TEXT
-            )
-        """)
-
-        connection.commit()
-        connection.close()
-
-    # =========================================================
-    # SAVE MEMORY
-    # =========================================================
-
-    def remember(
+    def __init__(
         self,
-        content,
-        category="general"
+        name,
+        role,
+        description=""
     ):
-        """Store a new long-term memory."""
 
-        if not content:
-            return False
+        self.name = name
+        self.role = role
+        self.description = description
 
-        category = (
-            category.lower().strip()
+        self.status = "IDLE"
+
+        self.current_task = None
+        self.last_result = None
+
+        self.tasks_completed = 0
+
+        self.history = []
+
+    # =========================================================
+    # EXECUTE
+    # =========================================================
+
+    def execute(self, task):
+        """Execute a task assigned to this agent."""
+
+        if not task:
+
+            return (
+                f"{self.name}: "
+                "No task was provided."
+            )
+
+        self.status = "WORKING"
+        self.current_task = task
+
+        started_at = datetime.now().isoformat()
+
+        # -----------------------------------------------------
+        # Placeholder execution layer
+        # -----------------------------------------------------
+
+        result = (
+            f"{self.name} is handling the task: "
+            f"{task}"
         )
 
-        if category not in self.VALID_CATEGORIES:
+        # -----------------------------------------------------
+        # Complete
+        # -----------------------------------------------------
 
-            category = "general"
+        self.status = "COMPLETED"
 
-        now = datetime.now().isoformat()
+        self.last_result = result
 
-        connection = self._connect()
-        cursor = connection.cursor()
+        self.tasks_completed += 1
 
-        cursor.execute(
-            """
-            INSERT INTO memories
-            (
-                category,
-                content,
-                created_at,
-                updated_at
-            )
-            VALUES (?, ?, ?, ?)
-            """,
-            (
-                category,
-                content.strip(),
-                now,
-                now,
-            )
+        self.history.append(
+            {
+                "task": task,
+                "result": result,
+                "started_at": started_at,
+                "completed_at":
+                    datetime.now().isoformat(),
+            }
         )
 
-        connection.commit()
-        connection.close()
-
-        return True
-
-    # =========================================================
-    # SEARCH MEMORY
-    # =========================================================
-
-    def recall(
-        self,
-        keyword=None,
-        category=None,
-        limit=10
-    ):
-        """Retrieve relevant memories."""
-
-        connection = self._connect()
-        cursor = connection.cursor()
-
-        if keyword and category:
-
-            cursor.execute(
-                """
-                SELECT
-                    id,
-                    category,
-                    content,
-                    created_at,
-                    updated_at
-                FROM memories
-                WHERE content LIKE ?
-                AND category = ?
-                ORDER BY id DESC
-                LIMIT ?
-                """,
-                (
-                    f"%{keyword}%",
-                    category,
-                    limit,
-                )
-            )
-
-        elif keyword:
-
-            cursor.execute(
-                """
-                SELECT
-                    id,
-                    category,
-                    content,
-                    created_at,
-                    updated_at
-                FROM memories
-                WHERE content LIKE ?
-                ORDER BY id DESC
-                LIMIT ?
-                """,
-                (
-                    f"%{keyword}%",
-                    limit,
-                )
-            )
-
-        elif category:
-
-            cursor.execute(
-                """
-                SELECT
-                    id,
-                    category,
-                    content,
-                    created_at,
-                    updated_at
-                FROM memories
-                WHERE category = ?
-                ORDER BY id DESC
-                LIMIT ?
-                """,
-                (
-                    category,
-                    limit,
-                )
-            )
-
-        else:
-
-            cursor.execute(
-                """
-                SELECT
-                    id,
-                    category,
-                    content,
-                    created_at,
-                    updated_at
-                FROM memories
-                ORDER BY id DESC
-                LIMIT ?
-                """,
-                (
-                    limit,
-                )
-            )
-
-        results = cursor.fetchall()
-
-        connection.close()
-
-        return results
-
-    # =========================================================
-    # RELEVANT MEMORY
-    # =========================================================
-
-    def relevant(
-        self,
-        query,
-        limit=5
-    ):
-        """
-        Find memories relevant to a query.
-
-        A lightweight keyword-based retrieval system
-        is used for now. Semantic/vector retrieval can
-        be added later.
-        """
-
-        if not query:
-            return []
-
-        words = [
-            word.strip(
-                ".,!?;:"
-            ).lower()
-            for word in query.split()
-        ]
-
-        words = [
-            word
-            for word in words
-            if len(word) > 2
-        ]
-
-        if not words:
-            return []
-
-        results = []
-
-        for word in words:
-
-            memories = self.recall(
-                keyword=word,
-                limit=limit
-            )
-
-            for memory in memories:
-
-                if memory not in results:
-
-                    results.append(
-                        memory
-                    )
-
-                if len(results) >= limit:
-
-                    return results
-
-        return results
-
-    # =========================================================
-    # GET MEMORY
-    # =========================================================
-
-    def get(self, memory_id):
-
-        connection = self._connect()
-        cursor = connection.cursor()
-
-        cursor.execute(
-            """
-            SELECT
-                id,
-                category,
-                content,
-                created_at,
-                updated_at
-            FROM memories
-            WHERE id = ?
-            """,
-            (
-                memory_id,
-            )
-        )
-
-        result = cursor.fetchone()
-
-        connection.close()
+        self.current_task = None
 
         return result
 
     # =========================================================
-    # UPDATE MEMORY
+    # RESET
     # =========================================================
 
-    def update(
-        self,
-        memory_id,
-        content=None,
-        category=None
-    ):
-        """Update an existing memory."""
+    def reset(self):
 
-        existing = self.get(
-            memory_id
-        )
-
-        if existing is None:
-            return False
-
-        new_content = (
-            content
-            if content
-            else existing[2]
-        )
-
-        new_category = (
-            category
-            if category
-            else existing[1]
-        )
-
-        new_category = (
-            new_category
-            .lower()
-            .strip()
-        )
-
-        if new_category not in self.VALID_CATEGORIES:
-
-            new_category = "general"
-
-        connection = self._connect()
-        cursor = connection.cursor()
-
-        cursor.execute(
-            """
-            UPDATE memories
-            SET
-                category = ?,
-                content = ?,
-                updated_at = ?
-            WHERE id = ?
-            """,
-            (
-                new_category,
-                new_content.strip(),
-                datetime.now().isoformat(),
-                memory_id,
-            )
-        )
-
-        connection.commit()
-
-        updated = (
-            cursor.rowcount > 0
-        )
-
-        connection.close()
-
-        return updated
-
-    # =========================================================
-    # FORGET ONE MEMORY
-    # =========================================================
-
-    def forget(self, memory_id):
-
-        connection = self._connect()
-        cursor = connection.cursor()
-
-        cursor.execute(
-            """
-            DELETE FROM memories
-            WHERE id = ?
-            """,
-            (
-                memory_id,
-            )
-        )
-
-        deleted = (
-            cursor.rowcount > 0
-        )
-
-        connection.commit()
-        connection.close()
-
-        return deleted
-
-    # =========================================================
-    # CLEAR MEMORY
-    # =========================================================
-
-    def clear(self):
-
-        connection = self._connect()
-        cursor = connection.cursor()
-
-        cursor.execute(
-            "DELETE FROM memories"
-        )
-
-        connection.commit()
-        connection.close()
-
-    # =========================================================
-    # COUNT
-    # =========================================================
-
-    def count(self):
-
-        connection = self._connect()
-        cursor = connection.cursor()
-
-        cursor.execute(
-            "SELECT COUNT(*) FROM memories"
-        )
-
-        result = cursor.fetchone()[0]
-
-        connection.close()
-
-        return result
-
-    # =========================================================
-    # CATEGORIES
-    # =========================================================
-
-    def categories(self):
-
-        return sorted(
-            self.VALID_CATEGORIES
-        )
+        self.status = "IDLE"
+        self.current_task = None
+        self.last_result = None
 
     # =========================================================
     # STATUS
     # =========================================================
 
+    def status_info(self):
+
+        return {
+            "name":
+                self.name,
+
+            "role":
+                self.role,
+
+            "description":
+                self.description,
+
+            "status":
+                self.status,
+
+            "current_task":
+                self.current_task,
+
+            "tasks_completed":
+                self.tasks_completed,
+        }
+
+
+# =============================================================
+# AGENT MANAGER
+# =============================================================
+
+class AgentManager:
+    """
+    Central manager for EON's multi-agent system.
+
+    The manager controls which agent receives which task.
+    """
+
+    def __init__(self):
+
+        self.agents = {}
+
+        self.workflow_history = []
+
+        self.register_default_agents()
+
+    # =========================================================
+    # DEFAULT AGENTS
+    # =========================================================
+
+    def register_default_agents(self):
+
+        self.register(
+            "researcher",
+            "Research Agent",
+            "Finds, organizes, and summarizes information."
+        )
+
+        self.register(
+            "coder",
+            "Coding Agent",
+            "Designs, writes, explains, and analyzes code."
+        )
+
+        self.register(
+            "analyst",
+            "Analysis Agent",
+            "Analyzes information and identifies patterns."
+        )
+
+        self.register(
+            "planner",
+            "Planning Agent",
+            "Breaks large goals into smaller tasks."
+        )
+
+        self.register(
+            "document",
+            "Document Agent",
+            "Works with documents and structured information."
+        )
+
+    # =========================================================
+    # REGISTER
+    # =========================================================
+
+    def register(
+        self,
+        agent_id,
+        role,
+        description=""
+    ):
+
+        if not agent_id:
+            return False
+
+        if agent_id in self.agents:
+            return False
+
+        self.agents[agent_id] = Agent(
+            name=agent_id,
+            role=role,
+            description=description,
+        )
+
+        return True
+
+    # =========================================================
+    # REMOVE
+    # =========================================================
+
+    def remove(self, agent_id):
+
+        if agent_id not in self.agents:
+            return False
+
+        del self.agents[
+            agent_id
+        ]
+
+        return True
+
+    # =========================================================
+    # GET
+    # =========================================================
+
+    def get(self, agent_id):
+
+        return self.agents.get(
+            agent_id
+        )
+
+    # =========================================================
+    # ASSIGN
+    # =========================================================
+
+    def assign(
+        self,
+        agent_id,
+        task
+    ):
+        """Assign a task to a specific agent."""
+
+        agent = self.get(
+            agent_id
+        )
+
+        if agent is None:
+
+            return (
+                f"Agent '{agent_id}' "
+                "was not found."
+            )
+
+        result = agent.execute(
+            task
+        )
+
+        self.workflow_history.append(
+            {
+                "agent":
+                    agent_id,
+
+                "task":
+                    task,
+
+                "result":
+                    result,
+
+                "timestamp":
+                    datetime.now().isoformat(),
+            }
+        )
+
+        return result
+
+    # =========================================================
+    # AUTO SELECT
+    # =========================================================
+
+    def select_agent(self, task):
+        """
+        Select the most suitable agent based on keywords.
+
+        This is a lightweight routing layer for now.
+        The AI Brain can replace this with intelligent
+        selection later.
+        """
+
+        if not task:
+            return "planner"
+
+        text = task.lower()
+
+        # -----------------------------------------------------
+        # Research
+        # -----------------------------------------------------
+
+        research_keywords = {
+            "research",
+            "find",
+            "search",
+            "investigate",
+            "information",
+            "study",
+            "latest",
+        }
+
+        if any(
+            word in text
+            for word in research_keywords
+        ):
+
+            return "researcher"
+
+        # -----------------------------------------------------
+        # Coding
+        # -----------------------------------------------------
+
+        coding_keywords = {
+            "code",
+            "coding",
+            "program",
+            "python",
+            "javascript",
+            "html",
+            "css",
+            "bug",
+            "debug",
+            "function",
+        }
+
+        if any(
+            word in text
+            for word in coding_keywords
+        ):
+
+            return "coder"
+
+        # -----------------------------------------------------
+        # Analysis
+        # -----------------------------------------------------
+
+        analysis_keywords = {
+            "analyze",
+            "analysis",
+            "compare",
+            "calculate",
+            "data",
+            "pattern",
+            "evaluate",
+        }
+
+        if any(
+            word in text
+            for word in analysis_keywords
+        ):
+
+            return "analyst"
+
+        # -----------------------------------------------------
+        # Documents
+        # -----------------------------------------------------
+
+        document_keywords = {
+            "document",
+            "pdf",
+            "report",
+            "write",
+            "summarize",
+            "notes",
+        }
+
+        if any(
+            word in text
+            for word in document_keywords
+        ):
+
+            return "document"
+
+        # -----------------------------------------------------
+        # Default
+        # -----------------------------------------------------
+
+        return "planner"
+
+    # =========================================================
+    # AUTO ASSIGN
+    # =========================================================
+
+    def auto_assign(self, task):
+        """
+        Automatically select an agent and assign the task.
+        """
+
+        agent_id = self.select_agent(
+            task
+        )
+
+        result = self.assign(
+            agent_id,
+            task
+        )
+
+        return {
+            "agent":
+                agent_id,
+
+            "task":
+                task,
+
+            "result":
+                result,
+        }
+
+    # =========================================================
+    # MULTI-AGENT WORKFLOW
+    # =========================================================
+
+    def run_workflow(self, task, agents=None):
+        """
+        Run a task through multiple agents.
+
+        Example:
+
+        Planner
+            ↓
+        Researcher
+            ↓
+        Analyst
+            ↓
+        Document
+        """
+
+        if not task:
+
+            return {
+                "status": "FAILED",
+                "message": "No workflow task provided.",
+            }
+
+        if agents is None:
+
+            agents = [
+                "planner",
+                "researcher",
+                "analyst",
+                "document",
+            ]
+
+        results = []
+
+        for agent_id in agents:
+
+            if agent_id not in self.agents:
+
+                results.append(
+                    {
+                        "agent":
+                            agent_id,
+
+                        "status":
+                            "NOT_FOUND",
+                    }
+                )
+
+                continue
+
+            result = self.assign(
+                agent_id,
+                task
+            )
+
+            results.append(
+                {
+                    "agent":
+                        agent_id,
+
+                    "status":
+                        "COMPLETED",
+
+                    "result":
+                        result,
+                }
+            )
+
+        workflow = {
+            "task":
+                task,
+
+            "agents":
+                agents,
+
+            "results":
+                results,
+
+            "timestamp":
+                datetime.now().isoformat(),
+        }
+
+        self.workflow_history.append(
+            workflow
+        )
+
+        return workflow
+
+    # =========================================================
+    # LIST AGENTS
+    # =========================================================
+
+    def list_agents(self):
+
+        return list(
+            self.agents.values()
+        )
+
+    # =========================================================
+    # AGENT NAMES
+    # =========================================================
+
+    def get_agent_names(self):
+
+        return list(
+            self.agents.keys()
+        )
+
+    # =========================================================
+    # AGENT STATUS
+    # =========================================================
+
+    def get_status(self, agent_id):
+
+        agent = self.get(
+            agent_id
+        )
+
+        if agent is None:
+            return None
+
+        return agent.status_info()
+
+    # =========================================================
+    # ALL STATUS
+    # =========================================================
+
     def status(self):
 
         return {
-            "database":
-                self.database,
+            agent_id:
+                agent.status_info()
 
-            "memories":
-                self.count(),
-
-            "categories":
-                self.categories(),
-
-            "status":
-                "ONLINE",
+            for agent_id, agent
+            in self.agents.items()
         }
+
+    # =========================================================
+    # WORKFLOW HISTORY
+    # =========================================================
+
+    def get_workflow_history(self):
+
+        return self.workflow_history.copy()
+
+    # =========================================================
+    # RESET
+    # =========================================================
+
+    def reset(self):
+
+        for agent in self.agents.values():
+
+            agent.reset()
+
+        self.workflow_history.clear()
