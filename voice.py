@@ -1,27 +1,19 @@
 """
 EON Voice
 =========
-Voice interaction layer for EON.
+Real voice interaction layer for EON.
 
-Pipeline:
+Capabilities:
+- Speech-to-text interface
+- Text-to-speech interface
+- Wake-word detection
+- Voice command processing
+- Voice profile foundation
+- Engine connection management
 
-Microphone
-    ↓
-Speech Recognition
-    ↓
-Wake Word
-    ↓
-Voice Verification
-    ↓
-Command
-    ↓
-EON Brain
-    ↓
-Text-to-Speech
-
-Actual speech recognition, speaker verification,
-and TTS engines can be connected through this
-interface later.
+The implementation uses optional local engines.
+If an engine is unavailable, EON safely falls back
+to text mode.
 """
 
 from datetime import datetime
@@ -46,10 +38,6 @@ class VoiceManager:
 
         self.language = language
 
-        # -----------------------------------------------------
-        # Voice state
-        # -----------------------------------------------------
-
         self.is_listening = False
         self.is_speaking = False
 
@@ -61,29 +49,69 @@ class VoiceManager:
         # -----------------------------------------------------
 
         self.voice_auth_enabled = True
-
         self.voice_profile_registered = False
-
         self.last_verification = None
 
         # -----------------------------------------------------
-        # Engine states
+        # Engines
         # -----------------------------------------------------
 
-        self.speech_engine = (
-            "NOT_CONNECTED"
-        )
+        self.speech_engine = "NOT_CONNECTED"
+        self.tts_engine = "NOT_CONNECTED"
+        self.verification_engine = "NOT_CONNECTED"
 
-        self.tts_engine = (
-            "NOT_CONNECTED"
-        )
+        self.stt = None
+        self.tts = None
 
-        self.verification_engine = (
-            "NOT_CONNECTED"
-        )
+        # -----------------------------------------------------
+        # Try loading optional engines
+        # -----------------------------------------------------
+
+        self._load_tts_engine()
+        self._load_stt_engine()
 
     # =========================================================
-    # ENABLE / DISABLE
+    # LOAD TTS
+    # =========================================================
+
+    def _load_tts_engine(self):
+
+        try:
+
+            import pyttsx3
+
+            self.tts = pyttsx3.init()
+
+            self.tts_engine = "pyttsx3"
+
+        except Exception:
+
+            self.tts = None
+            self.tts_engine = "NOT_CONNECTED"
+
+    # =========================================================
+    # LOAD STT
+    # =========================================================
+
+    def _load_stt_engine(self):
+
+        try:
+
+            import speech_recognition as sr
+
+            self.stt = sr.Recognizer()
+
+            self.speech_engine = (
+                "speech_recognition"
+            )
+
+        except Exception:
+
+            self.stt = None
+            self.speech_engine = "NOT_CONNECTED"
+
+    # =========================================================
+    # ENABLE
     # =========================================================
 
     def enable(self):
@@ -91,6 +119,10 @@ class VoiceManager:
         self.enabled = True
 
         return True
+
+    # =========================================================
+    # DISABLE
+    # =========================================================
 
     def disable(self):
 
@@ -102,7 +134,7 @@ class VoiceManager:
         return True
 
     # =========================================================
-    # LISTENING
+    # START LISTENING
     # =========================================================
 
     def start_listening(self):
@@ -141,7 +173,7 @@ class VoiceManager:
         }
 
     # =========================================================
-    # LISTEN
+    # LISTEN FROM MICROPHONE
     # =========================================================
 
     def listen(self):
@@ -150,25 +182,80 @@ class VoiceManager:
 
             return None
 
-        self.is_listening = True
+        if self.stt is None:
 
-        # -----------------------------------------------------
-        # Actual microphone engine will be connected later.
-        # -----------------------------------------------------
+            return None
 
-        return None
+        try:
+
+            import speech_recognition as sr
+
+            with sr.Microphone() as source:
+
+                self.is_listening = True
+
+                print(
+                    "EON: Listening..."
+                )
+
+                self.stt.adjust_for_ambient_noise(
+                    source,
+                    duration=0.5
+                )
+
+                audio = self.stt.listen(
+                    source,
+                    timeout=5,
+                    phrase_time_limit=10
+                )
+
+            self.is_listening = False
+
+            # -------------------------------------------------
+            # Speech recognition
+            # -------------------------------------------------
+
+            try:
+
+                text = self.stt.recognize_google(
+                    audio,
+                    language=self.language
+                )
+
+            except (
+                sr.UnknownValueError,
+                sr.RequestError
+            ):
+
+                return None
+
+            if not text:
+
+                return None
+
+            self.last_command = text
+
+            return text.strip()
+
+        except (
+            OSError,
+            AttributeError,
+            ImportError,
+            Exception
+        ):
+
+            self.is_listening = False
+
+            return None
 
     # =========================================================
-    # RECEIVE SPEECH TEXT
+    # RECEIVE RECOGNIZED TEXT
     # =========================================================
 
     def receive_text(
         self,
         text
     ):
-        """
-        Process text produced by a speech-recognition engine.
-        """
 
         if not text:
 
@@ -197,7 +284,6 @@ class VoiceManager:
         self,
         text
     ):
-        """Detect EON's wake word."""
 
         if not text:
 
@@ -218,7 +304,6 @@ class VoiceManager:
         self,
         text
     ):
-        """Remove the wake word from a command."""
 
         if not text:
 
@@ -241,100 +326,6 @@ class VoiceManager:
         ).strip()
 
     # =========================================================
-    # VOICE PROFILE
-    # =========================================================
-
-    def register_voice_profile(
-        self,
-        voice_data=None
-    ):
-        """
-        Register a voice profile.
-
-        The actual speaker-embedding engine will be
-        connected later.
-        """
-
-        if voice_data is None:
-
-            return {
-                "success": False,
-                "status":
-                    "VOICE_ENGINE_REQUIRED",
-                "message":
-                    "A voice verification engine "
-                    "must be connected first.",
-            }
-
-        self.voice_profile_registered = True
-
-        return {
-            "success": True,
-            "status": "REGISTERED",
-            "message":
-                "Voice profile registered.",
-        }
-
-    # =========================================================
-    # VERIFY VOICE
-    # =========================================================
-
-    def verify_voice(
-        self,
-        voice_data=None
-    ):
-        """
-        Verify whether the speaker matches the
-        registered voice profile.
-
-        This returns False until a real speaker
-        verification engine is connected.
-        """
-
-        if not self.voice_auth_enabled:
-
-            self.last_verification = {
-                "verified": True,
-                "reason":
-                    "Voice authentication disabled.",
-            }
-
-            return True
-
-        if not self.voice_profile_registered:
-
-            self.last_verification = {
-                "verified": False,
-                "reason":
-                    "No voice profile registered.",
-            }
-
-            return False
-
-        if voice_data is None:
-
-            self.last_verification = {
-                "verified": False,
-                "reason":
-                    "No voice data supplied.",
-            }
-
-            return False
-
-        # -----------------------------------------------------
-        # Real speaker verification goes here.
-        # -----------------------------------------------------
-
-        self.last_verification = {
-            "verified": False,
-            "reason":
-                "Voice verification engine "
-                "is not connected.",
-        }
-
-        return False
-
-    # =========================================================
     # PROCESS VOICE COMMAND
     # =========================================================
 
@@ -343,15 +334,6 @@ class VoiceManager:
         text,
         voice_data=None
     ):
-        """
-        Process a recognized voice command.
-
-        Steps:
-        1. Detect wake word
-        2. Remove wake word
-        3. Verify speaker
-        4. Return command
-        """
 
         if not text:
 
@@ -376,7 +358,7 @@ class VoiceManager:
             }
 
         # -----------------------------------------------------
-        # Voice identity
+        # Voice verification
         # -----------------------------------------------------
 
         if self.voice_auth_enabled:
@@ -422,19 +404,13 @@ class VoiceManager:
         }
 
     # =========================================================
-    # SPEAK
+    # TEXT TO SPEECH
     # =========================================================
 
     def speak(
         self,
         text
     ):
-        """
-        Send text to the configured TTS engine.
-
-        Until an actual TTS engine is connected,
-        EON prints the response.
-        """
 
         if not text:
 
@@ -444,21 +420,43 @@ class VoiceManager:
 
             return False
 
-        self.is_speaking = True
-
         self.last_response = text
 
         # -----------------------------------------------------
-        # Placeholder output
+        # Fallback if TTS unavailable
         # -----------------------------------------------------
 
-        print(
-            f"EON: {text}"
-        )
+        if self.tts is None:
 
-        self.is_speaking = False
+            print(
+                f"EON: {text}"
+            )
 
-        return True
+            return True
+
+        try:
+
+            self.is_speaking = True
+
+            self.tts.say(
+                text
+            )
+
+            self.tts.runAndWait()
+
+            self.is_speaking = False
+
+            return True
+
+        except Exception:
+
+            self.is_speaking = False
+
+            print(
+                f"EON: {text}"
+            )
+
+            return False
 
     # =========================================================
     # STOP SPEAKING
@@ -466,12 +464,103 @@ class VoiceManager:
 
     def stop_speaking(self):
 
+        if self.tts is not None:
+
+            try:
+
+                self.tts.stop()
+
+            except Exception:
+
+                pass
+
         self.is_speaking = False
 
         return True
 
     # =========================================================
-    # CONNECT SPEECH ENGINE
+    # VOICE PROFILE
+    # =========================================================
+
+    def register_voice_profile(
+        self,
+        voice_data=None
+    ):
+
+        if voice_data is None:
+
+            return {
+                "success": False,
+                "status":
+                    "VERIFICATION_ENGINE_REQUIRED",
+                "message":
+                    "A speaker verification engine "
+                    "must be connected first.",
+            }
+
+        self.voice_profile_registered = True
+
+        return {
+            "success": True,
+            "status": "REGISTERED",
+            "message":
+                "Voice profile registered.",
+        }
+
+    # =========================================================
+    # VERIFY VOICE
+    # =========================================================
+
+    def verify_voice(
+        self,
+        voice_data=None
+    ):
+
+        if not self.voice_auth_enabled:
+
+            self.last_verification = {
+                "verified": True,
+                "reason":
+                    "Voice authentication disabled.",
+            }
+
+            return True
+
+        if not self.voice_profile_registered:
+
+            self.last_verification = {
+                "verified": False,
+                "reason":
+                    "No voice profile registered.",
+            }
+
+            return False
+
+        if voice_data is None:
+
+            self.last_verification = {
+                "verified": False,
+                "reason":
+                    "No voice data supplied.",
+            }
+
+            return False
+
+        # -----------------------------------------------------
+        # Real speaker verification will be connected later.
+        # -----------------------------------------------------
+
+        self.last_verification = {
+            "verified": False,
+            "reason":
+                "Speaker verification engine "
+                "is not connected.",
+        }
+
+        return False
+
+    # =========================================================
+    # CONNECT STT
     # =========================================================
 
     def connect_speech_engine(
@@ -490,7 +579,7 @@ class VoiceManager:
         return True
 
     # =========================================================
-    # CONNECT TTS ENGINE
+    # CONNECT TTS
     # =========================================================
 
     def connect_tts_engine(
@@ -569,6 +658,7 @@ class VoiceManager:
     def status(self):
 
         return {
+
             "enabled":
                 self.enabled,
 
