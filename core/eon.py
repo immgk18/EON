@@ -1,24 +1,9 @@
 """
 EON Core
 ========
-Central orchestration layer for EON.
+Executive Orchestration Network.
 
-EON coordinates:
-- Brain
-- Context
-- Router
-- Security
-- Memory
-- Tasks
-- Agents
-- Tools
-- Files
-- Web
-- Computer
-- Vision
-- Voice
-- UI
-- Diagnostics
+Central orchestration layer connecting all EON subsystems.
 """
 
 from config import Config
@@ -54,7 +39,7 @@ class EON:
         self.mode = Config.MODE
 
         # =====================================================
-        # CORE SYSTEMS
+        # CORE
         # =====================================================
 
         self.context = Context()
@@ -70,31 +55,31 @@ class EON:
         )
 
         # =====================================================
-        # TASK ENGINE
+        # TASKS
         # =====================================================
 
         self.tasks = TaskEngine()
 
         # =====================================================
-        # AGENT SYSTEM
+        # AGENTS
         # =====================================================
 
         self.agents = AgentManager()
 
         # =====================================================
-        # FILE SYSTEM
+        # FILES
         # =====================================================
 
         self.files = FileManager()
 
         # =====================================================
-        # WEB SYSTEM
+        # WEB
         # =====================================================
 
         self.web = WebManager()
 
         # =====================================================
-        # TOOL REGISTRY
+        # TOOLS
         # =====================================================
 
         self.tools = ToolRegistry(
@@ -105,7 +90,7 @@ class EON:
         )
 
         # =====================================================
-        # AI BRAIN
+        # BRAIN
         # =====================================================
 
         self.brain = Brain(
@@ -117,7 +102,7 @@ class EON:
         )
 
         # =====================================================
-        # COMPUTER CONTROL
+        # COMPUTER
         # =====================================================
 
         self.computer = ComputerController(
@@ -128,9 +113,15 @@ class EON:
         # VISION
         # =====================================================
 
-        self.vision = Vision(
-            ai_provider=self.brain.ai
-        )
+        self.vision = Vision()
+
+        # Connect AI provider when supported.
+        try:
+            self.vision.set_ai_provider(
+                self.brain.ai
+            )
+        except (AttributeError, TypeError):
+            pass
 
         # =====================================================
         # VOICE
@@ -139,7 +130,7 @@ class EON:
         self.voice = Voice()
 
         # =====================================================
-        # USER INTERFACE
+        # UI
         # =====================================================
 
         self.ui = UI()
@@ -153,7 +144,7 @@ class EON:
         )
 
     # =========================================================
-    # START EON
+    # START
     # =========================================================
 
     def start(self):
@@ -188,13 +179,7 @@ class EON:
                 if not command:
                     continue
 
-                command_lower = (
-                    command.lower()
-                )
-
-                # -------------------------------------------------
-                # Shutdown
-                # -------------------------------------------------
+                command_lower = command.lower()
 
                 if command_lower in {
                     "exit",
@@ -202,54 +187,36 @@ class EON:
                     "shutdown",
                     "stop eon",
                 }:
-
                     self.shutdown()
                     break
-
-                # -------------------------------------------------
-                # Kill Mode
-                # -------------------------------------------------
 
                 if command_lower in {
                     "kill mode",
                     "activate kill mode",
                     "enter kill mode",
                 }:
-
                     self.set_mode("KILL")
                     continue
-
-                # -------------------------------------------------
-                # Normal Mode
-                # -------------------------------------------------
 
                 if command_lower in {
                     "eon has limits",
                     "normal mode",
                     "exit kill mode",
                 }:
-
                     self.set_mode("NORMAL")
                     continue
-
-                # -------------------------------------------------
-                # Process Command
-                # -------------------------------------------------
 
                 response = self.handle_command(
                     command
                 )
 
                 print()
-                print(
-                    f"EON > {response}"
-                )
+                print(f"EON > {response}")
                 print()
 
             except KeyboardInterrupt:
 
                 print()
-
                 self.shutdown()
 
             except Exception as error:
@@ -260,43 +227,28 @@ class EON:
                 )
                 print()
 
-                try:
-
-                    self.diagnostics.record_error(
-                        "main_loop",
-                        error
-                    )
-
-                except Exception:
-
-                    pass
+                self.diagnostics.record_error(
+                    "main_loop",
+                    error
+                )
 
     # =========================================================
     # COMMAND HANDLER
     # =========================================================
 
-    def handle_command(
-        self,
-        command
-    ):
+    def handle_command(self, command):
 
         if not command:
-            return (
-                "I didn't receive a command."
-            )
-
-        # -----------------------------------------------------
-        # Store user message
-        # -----------------------------------------------------
+            return "I didn't receive a command."
 
         self.context.add_message(
             "user",
             command
         )
 
-        # -----------------------------------------------------
-        # Diagnostics
-        # -----------------------------------------------------
+        # =====================================================
+        # DIAGNOSTICS
+        # =====================================================
 
         if command.lower().strip() in {
             "health",
@@ -310,10 +262,8 @@ class EON:
                 .run_health_check()
             )
 
-            response = (
-                self._format_result(
-                    result
-                )
+            response = self._format_result(
+                result
             )
 
             self.context.add_message(
@@ -323,9 +273,9 @@ class EON:
 
             return response
 
-        # -----------------------------------------------------
-        # Route Command
-        # -----------------------------------------------------
+        # =====================================================
+        # ROUTING
+        # =====================================================
 
         module = self.router.route(
             command
@@ -335,9 +285,9 @@ class EON:
             module
         )
 
-        # -----------------------------------------------------
-        # Process Command
-        # -----------------------------------------------------
+        # =====================================================
+        # PROCESS
+        # =====================================================
 
         try:
 
@@ -348,25 +298,15 @@ class EON:
 
         except Exception as error:
 
-            try:
-
-                self.diagnostics.record_error(
-                    module,
-                    error
-                )
-
-            except Exception:
-
-                pass
+            self.diagnostics.record_error(
+                module,
+                error
+            )
 
             response = (
                 "I encountered an internal "
                 "error while processing that request."
             )
-
-        # -----------------------------------------------------
-        # Store response
-        # -----------------------------------------------------
 
         self.context.add_message(
             "assistant",
@@ -379,91 +319,29 @@ class EON:
     # PROCESS
     # =========================================================
 
-    def process(
-        self,
-        command,
-        module=None
-    ):
+    def process(self, command, module=None):
 
         if module is None:
+            module = self.router.route(command)
 
-            module = self.router.route(
-                command
-            )
-
-        # -----------------------------------------------------
-        # Brain
-        # -----------------------------------------------------
-
-        if module == "brain":
-
-            return self.brain.think(
-                command
-            )
-
-        # -----------------------------------------------------
-        # Memory
-        # -----------------------------------------------------
-
-        if module == "memory":
+        # Brain handles most intelligent requests.
+        if module in {
+            "brain",
+            "memory",
+            "tasks",
+            "agents",
+            "tools",
+            "web",
+            "files",
+        }:
 
             return self.brain.think(
                 command
             )
 
-        # -----------------------------------------------------
-        # Tasks
-        # -----------------------------------------------------
-
-        if module == "tasks":
-
-            return self.brain.think(
-                command
-            )
-
-        # -----------------------------------------------------
-        # Agents
-        # -----------------------------------------------------
-
-        if module == "agents":
-
-            return self.brain.think(
-                command
-            )
-
-        # -----------------------------------------------------
-        # Tools
-        # -----------------------------------------------------
-
-        if module == "tools":
-
-            return self.brain.think(
-                command
-            )
-
-        # -----------------------------------------------------
-        # Web
-        # -----------------------------------------------------
-
-        if module == "web":
-
-            return self.brain.think(
-                command
-            )
-
-        # -----------------------------------------------------
-        # Files
-        # -----------------------------------------------------
-
-        if module == "files":
-
-            return self.brain.think(
-                command
-            )
-
-        # -----------------------------------------------------
-        # Computer
-        # -----------------------------------------------------
+        # =====================================================
+        # COMPUTER
+        # =====================================================
 
         if module == "computer":
 
@@ -491,9 +369,9 @@ class EON:
                     "encountered an error."
                 )
 
-        # -----------------------------------------------------
-        # Vision
-        # -----------------------------------------------------
+        # =====================================================
+        # VISION
+        # =====================================================
 
         if module == "vision":
 
@@ -501,9 +379,9 @@ class EON:
                 command
             )
 
-        # -----------------------------------------------------
-        # Voice
-        # -----------------------------------------------------
+        # =====================================================
+        # VOICE
+        # =====================================================
 
         if module == "voice":
 
@@ -511,28 +389,23 @@ class EON:
                 command
             )
 
-        # -----------------------------------------------------
-        # Fallback
-        # -----------------------------------------------------
+        # =====================================================
+        # FALLBACK
+        # =====================================================
 
         return self.brain.think(
             command
         )
 
     # =========================================================
-    # VISION HANDLER
+    # VISION
     # =========================================================
 
-    def _handle_vision(
-        self,
-        command
-    ):
-
-        words = command.split()
+    def _handle_vision(self, command):
 
         image_path = None
 
-        for word in words:
+        for word in command.split():
 
             cleaned = word.strip(
                 "\"'.,"
@@ -580,28 +453,18 @@ class EON:
         )
 
     # =========================================================
-    # VOICE HANDLER
+    # VOICE
     # =========================================================
 
-    def _handle_voice(
-        self,
-        command
-    ):
+    def _handle_voice(self, command):
 
-        command_lower = (
-            command.lower()
-        )
-
-        # -----------------------------------------------------
-        # Listen
-        # -----------------------------------------------------
+        command_lower = command.lower()
 
         if "listen" in command_lower:
 
             result = self.voice.listen()
 
             if result:
-
                 return result
 
             return (
@@ -609,20 +472,14 @@ class EON:
                 "unavailable."
             )
 
-        # -----------------------------------------------------
-        # Speak
-        # -----------------------------------------------------
-
         if "speak" in command_lower:
 
             message = (
-                command_lower
-                .replace(
-                    "speak",
-                    "",
-                    1
-                )
+                command
+                .split("speak", 1)[1]
                 .strip()
+                if "speak" in command_lower
+                else ""
             )
 
             if not message:
@@ -647,10 +504,6 @@ class EON:
                 "unavailable."
             )
 
-        # -----------------------------------------------------
-        # Default voice request
-        # -----------------------------------------------------
-
         return self.brain.think(
             command
         )
@@ -659,68 +512,37 @@ class EON:
     # RESULT FORMATTER
     # =========================================================
 
-    def _format_result(
-        self,
-        result
-    ):
+    def _format_result(self, result):
 
-        if isinstance(
-            result,
-            str
-        ):
-
+        if isinstance(result, str):
             return result
 
         if result is None:
+            return "No result was returned."
 
-            return (
-                "No result was returned."
-            )
-
-        if not isinstance(
-            result,
-            dict
-        ):
-
+        if not isinstance(result, dict):
             return str(result)
 
-        # -----------------------------------------------------
-        # Success response
-        # -----------------------------------------------------
-
-        if result.get(
-            "success",
-            False
-        ):
+        if result.get("success", False):
 
             if "response" in result:
-
                 return str(
                     result["response"]
                 )
 
             if "analysis" in result:
-
                 return str(
                     result["analysis"]
                 )
 
-        # -----------------------------------------------------
-        # Diagnostics
-        # -----------------------------------------------------
-
-        if result.get(
-            "status"
-        ) == "HEALTHY":
+        if result.get("status") == "HEALTHY":
 
             return (
                 "EON HEALTH: ALL "
                 "SYSTEMS OPERATIONAL."
             )
 
-        if result.get(
-            "status"
-        ) == "DEGRADED":
+        if result.get("status") == "DEGRADED":
 
             healthy = result.get(
                 "healthy_components",
@@ -738,12 +560,7 @@ class EON:
                 f"components healthy."
             )
 
-        # -----------------------------------------------------
-        # Error
-        # -----------------------------------------------------
-
         if "error" in result:
-
             return str(
                 result["error"]
             )
@@ -751,13 +568,10 @@ class EON:
         return str(result)
 
     # =========================================================
-    # MODE CONTROL
+    # MODE
     # =========================================================
 
-    def set_mode(
-        self,
-        mode
-    ):
+    def set_mode(self, mode):
 
         mode = mode.upper().strip()
 
@@ -765,27 +579,16 @@ class EON:
             "NORMAL",
             "KILL",
         }:
-
             return False
 
         self.mode = mode
 
-        # -----------------------------------------------------
-        # Kill Mode
-        # -----------------------------------------------------
-
         if mode == "KILL":
 
             try:
-
-                self.ui.set_mode(
-                    "KILL"
-                )
-
+                self.ui.set_mode("KILL")
                 self.ui.alert()
-
             except Exception:
-
                 pass
 
             print()
@@ -797,22 +600,12 @@ class EON:
             )
             print()
 
-        # -----------------------------------------------------
-        # Normal Mode
-        # -----------------------------------------------------
-
         else:
 
             try:
-
-                self.ui.set_mode(
-                    "NORMAL"
-                )
-
+                self.ui.set_mode("NORMAL")
                 self.ui.idle()
-
             except Exception:
-
                 pass
 
             print()
@@ -827,7 +620,7 @@ class EON:
         return True
 
     # =========================================================
-    # BOOT SEQUENCE
+    # BOOT
     # =========================================================
 
     def _boot_sequence(self):
@@ -843,45 +636,31 @@ class EON:
             "===================================="
         )
 
-        print(
-            "Core systems      : ONLINE"
-        )
+        systems = [
+            ("Core systems", True),
+            ("Brain", self.brain),
+            ("Memory", self.memory),
+            ("Task Engine", self.tasks),
+            ("Agent System", self.agents),
+            ("Tools", self.tools),
+            ("Security", self.security),
+            ("Vision", self.vision),
+            ("Voice", self.voice),
+            ("Diagnostics", self.diagnostics),
+        ]
 
-        print(
-            "Brain             : ONLINE"
-        )
+        for name, component in systems:
 
-        print(
-            "Memory            : ONLINE"
-        )
+            if component is True:
+                status = "ONLINE"
+            elif component is not None:
+                status = "ONLINE"
+            else:
+                status = "OFFLINE"
 
-        print(
-            "Task Engine       : ONLINE"
-        )
-
-        print(
-            "Agent System      : ONLINE"
-        )
-
-        print(
-            "Tools             : ONLINE"
-        )
-
-        print(
-            "Security          : ONLINE"
-        )
-
-        print(
-            "Vision            : ONLINE"
-        )
-
-        print(
-            "Voice             : ONLINE"
-        )
-
-        print(
-            "Diagnostics       : ONLINE"
-        )
+            print(
+                f"{name:<19}: {status}"
+            )
 
         print(
             "===================================="
@@ -971,28 +750,14 @@ class EON:
 
         self.running = False
 
-        # -----------------------------------------------------
-        # Stop voice
-        # -----------------------------------------------------
-
         try:
-
             self.voice.stop_speaking()
-
         except Exception:
-
             pass
 
-        # -----------------------------------------------------
-        # Shutdown UI
-        # -----------------------------------------------------
-
         try:
-
             self.ui.shutdown()
-
         except Exception:
-
             pass
 
         print(
