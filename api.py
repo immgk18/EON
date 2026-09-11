@@ -1,526 +1,257 @@
 """
 EON API
 =======
-Network interface for EON.
-
-Provides:
-- EON status
-- Command processing
-- Task information
-- Memory information
-
-Authentication is handled using an environment
-variable so secrets are never hard-coded.
+Web API + EON browser interface.
 """
 
 import os
 import secrets
-from functools import wraps
+from pathlib import Path
 
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_from_directory
 
-from config import Config
+from core.eon import EON
 
 
-class EONAPI:
-    """HTTP API interface for EON."""
+# =========================================================
+# APP SETUP
+# =========================================================
 
-    def __init__(self, eon):
+app = Flask(__name__)
 
-        self.eon = eon
+BASE_DIR = Path(__file__).resolve().parent
 
-        self.app = Flask(
-            "EON API"
-        )
+# Create ONE EON instance for the running server
+eon = EON()
 
-        # =====================================================
-        # API AUTHENTICATION
-        # =====================================================
 
-        self.api_token = os.getenv(
-            "EON_API_TOKEN",
-            ""
-        ).strip()
+# =========================================================
+# AUTHENTICATION
+# =========================================================
 
-        self._register_routes()
+def authenticate():
+    """
+    Check the EON API token.
 
-    # =========================================================
-    # AUTHENTICATION
-    # =========================================================
+    The real token must be stored in Render Environment
+    Variables as EON_API_TOKEN.
+    """
 
-    def _authorized(self):
+    expected_token = os.getenv(
+        "EON_API_TOKEN",
+        ""
+    )
 
-        # No configured token = deny access.
-        if not self.api_token:
-            return False
+    supplied_token = request.headers.get(
+        "X-EON-Token",
+        ""
+    )
 
-        token = request.headers.get(
-            "X-EON-Token",
-            ""
-        ).strip()
+    if not expected_token:
+        return False
 
-        if not token:
-            return False
+    return secrets.compare_digest(
+        supplied_token,
+        expected_token
+    )
 
-        try:
 
-            return secrets.compare_digest(
-                token,
-                self.api_token
-            )
+# =========================================================
+# EON WEB INTERFACE
+# =========================================================
 
-        except TypeError:
+@app.route("/", methods=["GET"])
+def home():
+    """
+    Serve the EON interface.
+    """
 
-            return False
+    return send_from_directory(
+        BASE_DIR,
+        "index.html"
+    )
 
-    def _require_auth(self, function):
-        """Protect an API endpoint with authentication."""
 
-        @wraps(function)
-        def wrapper(*args, **kwargs):
+# =========================================================
+# API INFORMATION
+# =========================================================
 
-            if not self._authorized():
+@app.route("/api", methods=["GET"])
+def api_info():
 
-                return jsonify({
-                    "success": False,
-                    "error":
-                        "Authentication required."
-                }), 401
+    return jsonify({
+        "success": True,
+        "name": "EON API",
+        "system": "Executive Orchestration Network",
+        "version": "1.0",
+        "status": "ONLINE",
+        "authentication": "TOKEN_REQUIRED"
+    })
 
-            return function(
-                *args,
-                **kwargs
-            )
 
-        return wrapper
+# =========================================================
+# HEALTH CHECK
+# =========================================================
 
-    # =========================================================
-    # ROUTES
-    # =========================================================
+@app.route("/api/health", methods=["GET"])
+def health():
 
-    def _register_routes(self):
+    return jsonify({
+        "success": True,
+        "service": "EON",
+        "status": "ONLINE"
+    })
 
-        # Public health endpoint
-        self.app.add_url_rule(
-            "/api",
-            "api_info",
-            self.api_info,
-            methods=["GET"]
-        )
 
-        # Protected endpoints
-        self.app.add_url_rule(
-            "/api/status",
-            "status",
-            self._require_auth(
-                self.status
-            ),
-            methods=["GET"]
-        )
+# =========================================================
+# STATUS
+# =========================================================
 
-        self.app.add_url_rule(
-            "/api/command",
-            "command",
-            self._require_auth(
-                self.command
-            ),
-            methods=["POST"]
-        )
+@app.route("/api/status", methods=["GET"])
+def status():
 
-        self.app.add_url_rule(
-            "/api/tasks",
-            "tasks",
-            self._require_auth(
-                self.tasks
-            ),
-            methods=["GET"]
-        )
-
-        self.app.add_url_rule(
-            "/api/memory",
-            "memory",
-            self._require_auth(
-                self.memory
-            ),
-            methods=["GET"]
-        )
-
-    # =========================================================
-    # API INFORMATION
-    # =========================================================
-
-    def api_info(self):
+    if not authenticate():
 
         return jsonify({
+            "success": False,
+            "error": "Authentication required."
+        }), 401
 
-            "success":
-                True,
+    try:
 
-            "name":
-                "EON API",
-
-            "version":
-                "1.0",
-
-            "system":
-                "Executive Orchestration Network",
-
-            "status":
-                "ONLINE",
-
-            "authentication":
-                "TOKEN_REQUIRED",
+        return jsonify({
+            "success": True,
+            "status": "ONLINE",
+            "eon": eon.status()
         })
 
-    # =========================================================
-    # STATUS
-    # =========================================================
+    except Exception as error:
 
-    def status(self):
+        return jsonify({
+            "success": False,
+            "error": str(error)
+        }), 500
 
-        try:
 
-            eon_status = (
-                self.eon.status()
-            )
+# =========================================================
+# COMMAND
+# =========================================================
 
-            return jsonify({
+@app.route("/api/command", methods=["POST"])
+def command():
 
-                "success":
-                    True,
+    if not authenticate():
 
-                "eon":
-                    eon_status,
+        return jsonify({
+            "success": False,
+            "error": "Authentication required."
+        }), 401
 
-            })
+    data = request.get_json(
+        silent=True
+    )
 
-        except Exception as error:
+    if not isinstance(data, dict):
 
-            return jsonify({
+        return jsonify({
+            "success": False,
+            "error": "JSON request body required."
+        }), 400
 
-                "success":
-                    False,
+    user_command = data.get(
+        "command",
+        ""
+    )
 
-                "error":
-                    str(error),
-
-            }), 500
-
-    # =========================================================
-    # COMMAND
-    # =========================================================
-
-    def command(self):
-
-        data = request.get_json(
-            silent=True
-        )
-
-        if not isinstance(
-            data,
-            dict
-        ):
-
-            return jsonify({
-
-                "success":
-                    False,
-
-                "error":
-                    "JSON request body required.",
-
-            }), 400
-
-        command = data.get(
-            "command"
-        )
-
-        if not isinstance(
-            command,
-            str
-        ):
-
-            return jsonify({
-
-                "success":
-                    False,
-
-                "error":
-                    "Command must be text.",
-
-            }), 400
-
-        command = command.strip()
-
-        if not command:
-
-            return jsonify({
-
-                "success":
-                    False,
-
-                "error":
-                    "Command cannot be empty.",
-
-            }), 400
-
-        # Prevent unnecessarily huge requests.
-        if len(command) > 2000:
-
-            return jsonify({
-
-                "success":
-                    False,
-
-                "error":
-                    "Command is too long.",
-
-            }), 413
-
-        # =====================================================
-        # SEND COMMAND TO EON CORE
-        # =====================================================
-
-        try:
-
-            response = (
-                self.eon.handle_command(
-                    command
-                )
-            )
-
-            return jsonify({
-
-                "success":
-                    True,
-
-                "command":
-                    command,
-
-                "response":
-                    response,
-
-                "module":
-                    self.eon.context.get_module(),
-
-            })
-
-        except Exception as error:
-
-            # Record the error if diagnostics exists.
-            try:
-
-                self.eon.diagnostics.record_error(
-                    "api_command",
-                    error
-                )
-
-            except Exception:
-
-                pass
-
-            return jsonify({
-
-                "success":
-                    False,
-
-                "error":
-                    "EON failed to process the command.",
-
-            }), 500
-
-    # =========================================================
-    # TASKS
-    # =========================================================
-
-    def tasks(self):
-
-        try:
-
-            task_list = (
-                self.eon.tasks.list_tasks()
-            )
-
-            result = []
-
-            for task in task_list:
-
-                # Support the current Task structure.
-                task_id = getattr(
-                    task,
-                    "id",
-                    getattr(
-                        task,
-                        "task_id",
-                        None
-                    )
-                )
-
-                title = getattr(
-                    task,
-                    "title",
-                    ""
-                )
-
-                status = getattr(
-                    task,
-                    "status",
-                    "UNKNOWN"
-                )
-
-                result.append({
-
-                    "id":
-                        task_id,
-
-                    "title":
-                        title,
-
-                    "status":
-                        status,
-
-                })
-
-            return jsonify({
-
-                "success":
-                    True,
-
-                "tasks":
-                    result,
-
-            })
-
-        except Exception as error:
-
-            return jsonify({
-
-                "success":
-                    False,
-
-                "error":
-                    str(error),
-
-            }), 500
-
-    # =========================================================
-    # MEMORY
-    # =========================================================
-
-    def memory(self):
-
-        try:
-
-            memories = (
-                self.eon.memory.recall()
-            )
-
-            result = []
-
-            for memory in memories:
-
-                # Handle dictionary-based memory.
-                if isinstance(
-                    memory,
-                    dict
-                ):
-
-                    result.append(memory)
-
-                # Handle tuple/list-based memory.
-                elif isinstance(
-                    memory,
-                    (tuple, list)
-                ):
-
-                    result.append({
-
-                        "id":
-                            memory[0]
-                            if len(memory) > 0
-                            else None,
-
-                        "category":
-                            memory[1]
-                            if len(memory) > 1
-                            else None,
-
-                        "content":
-                            memory[2]
-                            if len(memory) > 2
-                            else None,
-
-                        "created_at":
-                            memory[3]
-                            if len(memory) > 3
-                            else None,
-
-                    })
-
-                else:
-
-                    result.append({
-                        "content":
-                            str(memory)
-                    })
-
-            return jsonify({
-
-                "success":
-                    True,
-
-                "memories":
-                    result,
-
-            })
-
-        except Exception as error:
-
-            return jsonify({
-
-                "success":
-                    False,
-
-                "error":
-                    str(error),
-
-            }), 500
-
-    # =========================================================
-    # RUN SERVER
-    # =========================================================
-
-    def run(
-        self,
-        host=None,
-        port=None,
-        debug=None
+    if not isinstance(
+        user_command,
+        str
     ):
 
-        host = (
-            host
-            or os.getenv(
-                "EON_API_HOST",
-                "127.0.0.1"
-            )
+        return jsonify({
+            "success": False,
+            "error": "Command must be text."
+        }), 400
+
+    user_command = user_command.strip()
+
+    if not user_command:
+
+        return jsonify({
+            "success": False,
+            "error": "Command cannot be empty."
+        }), 400
+
+    if len(user_command) > 2000:
+
+        return jsonify({
+            "success": False,
+            "error": "Command is too long."
+        }), 400
+
+    try:
+
+        result = eon.handle_command(
+            user_command
         )
 
-        port = (
-            port
-            or int(
-                os.getenv(
-                    "PORT",
-                    str(Config.PORT)
-                )
-            )
+        return jsonify({
+            "success": True,
+            "command": user_command,
+            "response": result
+        })
+
+    except Exception as error:
+
+        return jsonify({
+            "success": False,
+            "error": str(error)
+        }), 500
+
+
+# =========================================================
+# MODULES
+# =========================================================
+
+@app.route("/api/modules", methods=["GET"])
+def modules():
+
+    if not authenticate():
+
+        return jsonify({
+            "success": False,
+            "error": "Authentication required."
+        }), 401
+
+    try:
+
+        return jsonify({
+            "success": True,
+            "modules": eon.router.get_available_modules()
+        })
+
+    except Exception as error:
+
+        return jsonify({
+            "success": False,
+            "error": str(error)
+        }), 500
+
+
+# =========================================================
+# SERVER
+# =========================================================
+
+if __name__ == "__main__":
+
+    port = int(
+        os.getenv(
+            "PORT",
+            "10000"
         )
+    )
 
-        if debug is None:
-
-            debug = Config.DEBUG
-
-        self.app.run(
-            host=host,
-            port=port,
-            debug=debug,
-        )
+    app.run(
+        host="0.0.0.0",
+        port=port
+    )
