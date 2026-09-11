@@ -6,7 +6,9 @@ Central orchestrator for the Executive Orchestration Network.
 EON Core connects:
 - Brain
 - Router
+- Context
 - Memory
+- Security
 - Tasks
 - Agents
 - Tools
@@ -16,7 +18,6 @@ EON Core connects:
 - Vision
 - Voice
 - UI
-- Security
 """
 
 from core.brain import Brain
@@ -48,34 +49,92 @@ class EON:
         # =====================================================
 
         self.context = Context()
-        self.brain = Brain(self.context)
         self.router = Router()
 
         # =====================================================
-        # SYSTEM MODULES
+        # SECURITY
+        # =====================================================
+
+        self.security = Security(
+            require_confirmation=Config.REQUIRE_CONFIRMATION
+        )
+
+        # =====================================================
+        # MEMORY
         # =====================================================
 
         self.memory = Memory(
             Config.MEMORY_DATABASE
         )
 
-        self.security = Security(
-            require_confirmation=Config.REQUIRE_CONFIRMATION
-        )
+        # =====================================================
+        # TASKS
+        # =====================================================
 
         self.tasks = TaskEngine()
+
+        # =====================================================
+        # AGENTS
+        # =====================================================
+
         self.agents = AgentManager()
-        self.tools = ToolRegistry()
+
+        # =====================================================
+        # FILE SYSTEM
+        # =====================================================
 
         self.files = FileManager()
+
+        # =====================================================
+        # WEB
+        # =====================================================
+
+        self.web = WebManager()
+
+        # =====================================================
+        # TOOLS
+        # =====================================================
+
+        self.tools = ToolRegistry(
+            file_manager=self.files,
+            task_engine=self.tasks,
+            web_manager=self.web,
+            security=self.security,
+        )
+
+        # =====================================================
+        # BRAIN
+        # =====================================================
+
+        self.brain = Brain(
+            self.context,
+            tools=self.tools,
+        )
+
+        # =====================================================
+        # COMPUTER
+        # =====================================================
 
         self.computer = ComputerController(
             security=self.security
         )
 
-        self.web = WebManager()
+        # =====================================================
+        # VISION
+        # =====================================================
+
         self.vision = Vision()
+
+        # =====================================================
+        # VOICE
+        # =====================================================
+
         self.voice = VoiceManager()
+
+        # =====================================================
+        # UI
+        # =====================================================
+
         self.ui = EONUI()
 
         # =====================================================
@@ -106,14 +165,15 @@ class EON:
                     continue
 
                 # -------------------------------------------------
-                # EXIT COMMAND
+                # EXIT
                 # -------------------------------------------------
 
                 if command.lower() in {
                     "exit",
                     "quit",
-                    "shutdown"
+                    "shutdown",
                 }:
+
                     self.shutdown()
                     continue
 
@@ -132,21 +192,25 @@ class EON:
                     continue
 
                 # -------------------------------------------------
-                # STORE USER MESSAGE
+                # SAVE USER MESSAGE
                 # -------------------------------------------------
 
                 self.context.add_message(
                     "user",
-                    command
+                    command,
                 )
 
                 # -------------------------------------------------
                 # ROUTE COMMAND
                 # -------------------------------------------------
 
-                module = self.router.route(command)
+                module = self.router.route(
+                    command
+                )
 
-                self.context.set_module(module)
+                self.context.set_module(
+                    module
+                )
 
                 # -------------------------------------------------
                 # PROCESS COMMAND
@@ -154,16 +218,16 @@ class EON:
 
                 response = self.process(
                     command,
-                    module
+                    module,
                 )
 
                 # -------------------------------------------------
-                # STORE RESPONSE
+                # SAVE EON RESPONSE
                 # -------------------------------------------------
 
                 self.context.add_message(
                     "eon",
-                    response
+                    response,
                 )
 
                 # -------------------------------------------------
@@ -192,7 +256,7 @@ class EON:
     # =========================================================
 
     def process(self, command, module):
-        """Process a command using the appropriate module."""
+        """Route a command to the appropriate subsystem."""
 
         command_lower = command.lower().strip()
 
@@ -220,7 +284,7 @@ class EON:
 
             return self._process_memory(
                 command,
-                command_lower
+                command_lower,
             )
 
         # =====================================================
@@ -231,7 +295,7 @@ class EON:
 
             return self._process_tasks(
                 command,
-                command_lower
+                command_lower,
             )
 
         # =====================================================
@@ -242,7 +306,7 @@ class EON:
 
             return self._process_agents(
                 command,
-                command_lower
+                command_lower,
             )
 
         # =====================================================
@@ -253,7 +317,7 @@ class EON:
 
             return self._process_tools(
                 command,
-                command_lower
+                command_lower,
             )
 
         # =====================================================
@@ -264,7 +328,7 @@ class EON:
 
             return self._process_files(
                 command,
-                command_lower
+                command_lower,
             )
 
         # =====================================================
@@ -275,7 +339,7 @@ class EON:
 
             return self._process_computer(
                 command,
-                command_lower
+                command_lower,
             )
 
         # =====================================================
@@ -286,7 +350,7 @@ class EON:
 
             return self._process_web(
                 command,
-                command_lower
+                command_lower,
             )
 
         # =====================================================
@@ -297,7 +361,7 @@ class EON:
 
             return self._process_vision(
                 command,
-                command_lower
+                command_lower,
             )
 
         # =====================================================
@@ -308,36 +372,53 @@ class EON:
 
             return self._process_voice(
                 command,
-                command_lower
+                command_lower,
             )
 
         # =====================================================
         # FALLBACK
         # =====================================================
 
-        return self.brain.think(command)
+        return self.brain.think(
+            command
+        )
 
     # =========================================================
     # MEMORY PROCESSOR
     # =========================================================
 
-    def _process_memory(self, command, command_lower):
+    def _process_memory(
+        self,
+        command,
+        command_lower,
+    ):
+
+        # -----------------------------------------------------
+        # REMEMBER
+        # -----------------------------------------------------
 
         if (
             "remember" in command_lower
             or "save this" in command_lower
         ):
 
-            content = command
-
             success = self.memory.remember(
-                content
+                command
             )
 
             if success:
-                return "Memory saved successfully."
 
-            return "I could not save that memory."
+                return (
+                    "Memory saved successfully."
+                )
+
+            return (
+                "I could not save that memory."
+            )
+
+        # -----------------------------------------------------
+        # RECALL
+        # -----------------------------------------------------
 
         if (
             "recall" in command_lower
@@ -347,35 +428,57 @@ class EON:
             memories = self.memory.recall()
 
             if not memories:
-                return "I don't have any stored memories."
+
+                return (
+                    "I don't have any stored memories."
+                )
 
             return self._format_memories(
                 memories
             )
 
+        # -----------------------------------------------------
+        # CLEAR MEMORY
+        # -----------------------------------------------------
+
         if "clear memory" in command_lower:
 
             self.memory.clear()
 
-            return "All stored memories have been cleared."
+            return (
+                "All stored memories "
+                "have been cleared."
+            )
 
         return (
             "Memory system online.\n"
-            f"Stored memories: {self.memory.count()}"
+            f"Stored memories: "
+            f"{self.memory.count()}"
         )
 
     # =========================================================
     # TASK PROCESSOR
     # =========================================================
 
-    def _process_tasks(self, command, command_lower):
+    def _process_tasks(
+        self,
+        command,
+        command_lower,
+    ):
+
+        # -----------------------------------------------------
+        # LIST TASKS
+        # -----------------------------------------------------
 
         if "list" in command_lower:
 
             tasks = self.tasks.list_tasks()
 
             if not tasks:
-                return "There are no tasks."
+
+                return (
+                    "There are no tasks."
+                )
 
             lines = []
 
@@ -387,7 +490,13 @@ class EON:
                     f"{task.status}"
                 )
 
-            return "\n".join(lines)
+            return "\n".join(
+                lines
+            )
+
+        # -----------------------------------------------------
+        # COMPLETE TASK
+        # -----------------------------------------------------
 
         if (
             "complete" in command_lower
@@ -402,23 +511,31 @@ class EON:
             )
 
             if task_id is None:
-                return "I could not identify the task number."
+
+                return (
+                    "I could not identify "
+                    "the task number."
+                )
 
             success = self.tasks.complete_task(
                 task_id
             )
 
             if success:
+
                 return (
                     f"Task #{task_id} "
                     "marked as completed."
                 )
 
             return (
-                f"Task #{task_id} was not found."
+                f"Task #{task_id} "
+                "was not found."
             )
 
-        # Create a new task
+        # -----------------------------------------------------
+        # CREATE TASK
+        # -----------------------------------------------------
 
         self.context.set_goal(
             command
@@ -426,7 +543,7 @@ class EON:
 
         task = self.tasks.create_task(
             title=command,
-            description="Created by EON."
+            description="Created by EON.",
         )
 
         self.context.set_task(
@@ -442,10 +559,14 @@ class EON:
     # AGENT PROCESSOR
     # =========================================================
 
-    def _process_agents(self, command, command_lower):
+    def _process_agents(
+        self,
+        command,
+        command_lower,
+    ):
 
         # -----------------------------------------------------
-        # SHOW AGENTS
+        # LIST AGENTS
         # -----------------------------------------------------
 
         if (
@@ -453,7 +574,9 @@ class EON:
             or "available" in command_lower
         ):
 
-            agents = self.agents.get_agent_names()
+            agents = (
+                self.agents.get_agent_names()
+            )
 
             return (
                 "Available EON agents:\n"
@@ -464,26 +587,30 @@ class EON:
             )
 
         # -----------------------------------------------------
-        # ASSIGN SIMPLE TASK
+        # FIND AGENT
         # -----------------------------------------------------
 
         selected_agent = None
 
-        for agent_id in self.agents.get_agent_names():
+        for agent_id in (
+            self.agents.get_agent_names()
+        ):
 
             if agent_id in command_lower:
 
                 selected_agent = agent_id
                 break
 
+        # -----------------------------------------------------
+        # ASSIGN
+        # -----------------------------------------------------
+
         if selected_agent:
 
-            result = self.agents.assign(
+            return self.agents.assign(
                 selected_agent,
-                command
+                command,
             )
-
-            return result
 
         return (
             "Agent system is online.\n"
@@ -497,7 +624,15 @@ class EON:
     # TOOL PROCESSOR
     # =========================================================
 
-    def _process_tools(self, command, command_lower):
+    def _process_tools(
+        self,
+        command,
+        command_lower,
+    ):
+
+        # -----------------------------------------------------
+        # LIST TOOLS
+        # -----------------------------------------------------
 
         if (
             "list" in command_lower
@@ -508,15 +643,31 @@ class EON:
                 "Available EON tools:\n"
                 + "\n".join(
                     f"- {tool}"
-                    for tool in self.tools.get_tool_names()
+                    for tool in (
+                        self.tools.get_tool_names()
+                    )
                 )
             )
 
+        # -----------------------------------------------------
+        # CALCULATOR
+        # -----------------------------------------------------
+
         if "calculate" in command_lower:
 
-            return (
-                "Calculator tool is registered. "
-                "Calculation execution can be connected next."
+            expression = (
+                command_lower
+                .replace(
+                    "calculate",
+                    "",
+                    1,
+                )
+                .strip()
+            )
+
+            return self.tools.execute(
+                "calculator",
+                expression,
             )
 
         return (
@@ -529,14 +680,28 @@ class EON:
     # FILE PROCESSOR
     # =========================================================
 
-    def _process_files(self, command, command_lower):
+    def _process_files(
+        self,
+        command,
+        command_lower,
+    ):
 
-        if "list" in command_lower:
+        # -----------------------------------------------------
+        # LIST FILES
+        # -----------------------------------------------------
+
+        if (
+            "list" in command_lower
+            or "show files" in command_lower
+        ):
 
             files = self.files.list_files()
 
             if not files:
-                return "No files found."
+
+                return (
+                    "No files found."
+                )
 
             return (
                 "Files and folders:\n"
@@ -546,18 +711,22 @@ class EON:
                 )
             )
 
-        if (
-            "read" in command_lower
-            and "." in command
-        ):
+        # -----------------------------------------------------
+        # READ FILE
+        # -----------------------------------------------------
 
-            filename = command.split(
+        if "read" in command_lower:
+
+            filename = command_lower.split(
                 "read",
-                1
+                1,
             )[-1].strip()
 
             if not filename:
-                return "Please specify a file."
+
+                return (
+                    "Please specify a file."
+                )
 
             return self.files.read_file(
                 filename
@@ -575,8 +744,12 @@ class EON:
     def _process_computer(
         self,
         command,
-        command_lower
+        command_lower,
     ):
+
+        # -----------------------------------------------------
+        # CALCULATOR
+        # -----------------------------------------------------
 
         if "calculator" in command_lower:
 
@@ -584,11 +757,19 @@ class EON:
                 "calculator"
             )
 
+        # -----------------------------------------------------
+        # NOTEPAD
+        # -----------------------------------------------------
+
         if "notepad" in command_lower:
 
             return self.computer.open_application(
                 "notepad"
             )
+
+        # -----------------------------------------------------
+        # PAINT
+        # -----------------------------------------------------
 
         if "paint" in command_lower:
 
@@ -596,9 +777,15 @@ class EON:
                 "paint"
             )
 
+        # -----------------------------------------------------
+        # SYSTEM INFO
+        # -----------------------------------------------------
+
         if "system info" in command_lower:
 
-            info = self.computer.system_info()
+            info = (
+                self.computer.system_info()
+            )
 
             return self._format_dictionary(
                 info
@@ -606,30 +793,44 @@ class EON:
 
         return (
             "Computer control is online.\n"
-            "Approved computer operations are available."
+            "Approved computer operations "
+            "are available."
         )
 
     # =========================================================
     # WEB PROCESSOR
     # =========================================================
 
-    def _process_web(self, command, command_lower):
+    def _process_web(
+        self,
+        command,
+        command_lower,
+    ):
 
-        if "search" in command_lower:
+        if (
+            "search" in command_lower
+            or "look up" in command_lower
+        ):
 
             query = command
 
-            for word in [
+            prefixes = [
                 "search",
-                "the web",
-                "internet",
-                "online"
-            ]:
+                "look up",
+                "search the web",
+            ]
 
-                query = query.replace(
-                    word,
-                    "",
-                ).strip()
+            for prefix in prefixes:
+
+                if query.lower().startswith(
+                    prefix
+                ):
+
+                    query = query[
+                        len(prefix):
+                    ].strip()
+
+                    break
 
             if not query:
 
@@ -638,16 +839,14 @@ class EON:
                     "you want me to search for."
                 )
 
-            url = self.web.create_search_url(
-                query
+            return self.tools.execute(
+                "web_search",
+                query,
             )
 
-            return (
-                f"Search prepared for: {query}\n"
-                f"Search URL: {url}"
-            )
-
-        return "Web intelligence is online."
+        return (
+            "Web intelligence is online."
+        )
 
     # =========================================================
     # VISION PROCESSOR
@@ -656,12 +855,12 @@ class EON:
     def _process_vision(
         self,
         command,
-        command_lower
+        command_lower,
     ):
 
         return (
-            "Vision system is online and ready "
-            "for visual input."
+            "Vision system is online and "
+            "ready for visual input."
         )
 
     # =========================================================
@@ -671,22 +870,27 @@ class EON:
     def _process_voice(
         self,
         command,
-        command_lower
+        command_lower,
     ):
 
         if "listen" in command_lower:
 
             self.ui.listening()
 
-            return self.voice.start_listening()
+            return (
+                self.voice.start_listening()
+            )
 
         if "stop listening" in command_lower:
 
-            return self.voice.stop_listening()
+            return (
+                self.voice.stop_listening()
+            )
 
         return (
             "Voice system is online.\n"
-            f"Wake word: {self.voice.wake_word}\n"
+            f"Wake word: "
+            f"{self.voice.wake_word}\n"
             "Voice authentication: "
             f"{self.voice.voice_auth_enabled}"
         )
@@ -695,7 +899,10 @@ class EON:
     # MEMORY FORMATTER
     # =========================================================
 
-    def _format_memories(self, memories):
+    def _format_memories(
+        self,
+        memories,
+    ):
 
         formatted = []
 
@@ -718,7 +925,10 @@ class EON:
     # DICTIONARY FORMATTER
     # =========================================================
 
-    def _format_dictionary(self, data):
+    def _format_dictionary(
+        self,
+        data,
+    ):
 
         lines = []
 
@@ -728,13 +938,18 @@ class EON:
                 f"{key}: {value}"
             )
 
-        return "\n".join(lines)
+        return "\n".join(
+            lines
+        )
 
     # =========================================================
     # NUMBER EXTRACTION
     # =========================================================
 
-    def _extract_number(self, text):
+    def _extract_number(
+        self,
+        text,
+    ):
 
         current_number = ""
 
@@ -760,7 +975,10 @@ class EON:
     # MODE CONTROL
     # =========================================================
 
-    def set_mode(self, mode):
+    def set_mode(
+        self,
+        mode,
+    ):
 
         mode = mode.upper()
 
@@ -917,16 +1135,23 @@ class EON:
         )
 
     # =========================================================
-    # SYSTEM STATUS
+    # FULL SYSTEM STATUS
     # =========================================================
 
     def status(self):
 
         return {
-            "name": Config.NAME,
-            "version": Config.VERSION,
-            "mode": self.mode,
-            "running": self.running,
+            "name":
+                Config.NAME,
+
+            "version":
+                Config.VERSION,
+
+            "mode":
+                self.mode,
+
+            "running":
+                self.running,
 
             "context":
                 self.context.status(),
@@ -966,7 +1191,10 @@ class EON:
     # STATUS TEXT
     # =========================================================
 
-    def _status_text(self, status):
+    def _status_text(
+        self,
+        status,
+    ):
 
         return str(
             status
