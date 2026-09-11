@@ -1,35 +1,97 @@
+"""
+EON Brain
+=========
+Reasoning and decision layer of EON.
+
+The AI model can be connected to this layer later.
+"""
+
+from typing import Optional
+
+
 class Brain:
-    """EON's reasoning layer."""
+    """EON's central reasoning interface."""
 
     def __init__(self, context):
         self.context = context
+        self.name = "EON Brain"
+        self.status = "READY"
 
-    def think(self, command):
+    def think(self, command: str) -> str:
         """
-        Basic reasoning layer.
-        The real AI model will be connected here later.
-        """
+        Process a user command and generate a response.
 
-        command = command.strip()
+        The current version uses basic local reasoning.
+        A real AI model can be connected here later.
+        """
 
         if not command:
             return "I didn't receive a command."
 
-        command_lower = command.lower()
+        command = command.strip()
+        lowered = command.lower()
 
-        if command_lower in ["hello", "hi", "hey"]:
-            return "Hello. EON is ready."
+        # Basic identity
+        if lowered in {"hi", "hello", "hey"}:
+            return "Hello. EON is online and ready."
 
-        if "who are you" in command_lower:
-            return "I am EON — Executive Orchestration Network."
-
-        if "status" in command_lower:
-            return "All core systems are operational."
-
-        if "help" in command_lower:
+        if "who are you" in lowered:
             return (
-                "I can process commands, reason about tasks, "
-                "route requests, and coordinate EON modules."
+                "I am EON — Executive Orchestration Network, "
+                "your personal AI computing system."
             )
 
-        return f"I've received your command: {command}"
+        # System status
+        if lowered == "status" or "system status" in lowered:
+            return self.system_status()
+
+        # Help
+        if lowered in {"help", "what can you do"}:
+            return self.help()
+
+        # Context information
+        if "history" in lowered:
+            return self.history_summary()
+
+        # Default response
+        return (
+            f"I understand your command: '{command}'. "
+            "The reasoning engine is ready for deeper AI integration."
+        )
+
+    def system_status(self) -> str:
+        """Return the current brain status."""
+
+        history_count = len(self.context.get_history())
+
+        return (
+            "EON systems are operational. "
+            f"Brain: {self.status}. "
+            f"Context messages: {history_count}."
+        )
+
+    def help(self) -> str:
+        """Return basic EON capabilities."""
+
+        return (
+            "I can understand commands, maintain context, "
+            "route requests to EON modules, and coordinate tasks. "
+            "Voice, vision, web, computer control, memory, "
+            "and advanced AI reasoning will connect through "
+            "their respective modules."
+        )
+
+    def history_summary(self) -> str:
+        """Return a simple summary of the current session."""
+
+        history = self.context.get_history()
+
+        if not history:
+            return "There is no conversation history yet."
+
+        return f"This session currently contains {len(history)} messages."
+
+    def reset(self) -> None:
+        """Reset the brain's current context."""
+
+        self.context.clear()
