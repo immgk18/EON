@@ -1,7 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
     <meta charset="UTF-8">
+
     <meta
         name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0"
@@ -9,14 +12,18 @@
 
     <title>EON — Executive Orchestration Network</title>
 
+
     <style>
+
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
         }
 
+
         :root {
+
             --gold: #ffd84a;
             --gold-bright: #fff4a8;
             --gold-dark: #8f6f00;
@@ -29,33 +36,48 @@
             --orb-color: #ffd84a;
             --orb-bright: #fff4a8;
             --orb-dark: #8f6f00;
+
         }
+
 
         html,
         body {
+
             width: 100%;
             height: 100%;
+
             overflow: hidden;
+
             background: #000;
+
             color: white;
+
             font-family:
                 Inter,
                 Arial,
                 Helvetica,
                 sans-serif;
+
         }
 
+
         body {
+
             position: relative;
+
         }
+
 
         /* =========================================================
            BACKGROUND
         ========================================================= */
 
         .background {
+
             position: fixed;
+
             inset: 0;
+
             background:
                 radial-gradient(
                     circle at center,
@@ -63,47 +85,85 @@
                     transparent 42%
                 ),
                 #000;
+
             pointer-events: none;
+
         }
+
 
         .stars {
+
             position: fixed;
+
             inset: 0;
+
             overflow: hidden;
+
             pointer-events: none;
+
         }
+
 
         .star {
+
             position: absolute;
+
             width: 2px;
             height: 2px;
+
             border-radius: 50%;
-            background: rgba(255, 255, 255, 0.55);
-            animation: starFloat linear infinite;
+
+            background:
+                rgba(255, 255, 255, 0.55);
+
+            animation:
+                starFloat linear infinite;
+
         }
+
 
         @keyframes starFloat {
+
             from {
-                transform: translateY(0);
-                opacity: 0.15;
+
+                transform:
+                    translateY(0);
+
+                opacity:
+                    0.15;
+
             }
+
 
             50% {
-                opacity: 0.7;
+
+                opacity:
+                    0.7;
+
             }
 
+
             to {
-                transform: translateY(-120px);
-                opacity: 0.1;
+
+                transform:
+                    translateY(-120px);
+
+                opacity:
+                    0.1;
+
             }
+
         }
+
 
         /* =========================================================
            TOP BAR
         ========================================================= */
 
         .top-bar {
+
             position: fixed;
+
             top: 0;
             left: 0;
             right: 0;
@@ -111,102 +171,157 @@
             height: 72px;
 
             display: flex;
+
             align-items: center;
+
             justify-content: space-between;
 
             padding: 0 28px;
 
             z-index: 50;
 
-            background: linear-gradient(
-                to bottom,
-                rgba(0, 0, 0, 0.75),
-                rgba(0, 0, 0, 0)
-            );
+            background:
+                linear-gradient(
+                    to bottom,
+                    rgba(0, 0, 0, 0.75),
+                    rgba(0, 0, 0, 0)
+                );
+
         }
 
+
         .brand {
+
             font-size: 18px;
+
             font-weight: 700;
+
             letter-spacing: 7px;
-            color: var(--orb-color);
+
+            color:
+                var(--orb-color);
 
             text-shadow:
                 0 0 8px var(--orb-color),
                 0 0 20px rgba(255, 216, 74, 0.35);
+
         }
 
+
         .connection {
+
             display: flex;
+
             align-items: center;
+
             gap: 9px;
 
             font-size: 11px;
+
             letter-spacing: 2px;
-            color: rgba(255, 255, 255, 0.55);
+
+            color:
+                rgba(255, 255, 255, 0.55);
+
         }
+
 
         .connection-dot {
+
             width: 7px;
             height: 7px;
+
             border-radius: 50%;
+
             background: #777;
 
-            box-shadow: 0 0 8px #777;
+            box-shadow:
+                0 0 8px #777;
 
-            transition: 0.3s ease;
+            transition:
+                0.3s ease;
+
         }
 
-        .connection.online .connection-dot {
-            background: var(--orb-color);
+
+        .connection.online
+        .connection-dot {
+
+            background:
+                var(--orb-color);
+
             box-shadow:
                 0 0 8px var(--orb-color),
                 0 0 18px var(--orb-color);
+
         }
 
-        .connection.offline .connection-dot {
-            background: var(--red);
-            box-shadow: 0 0 12px var(--red);
+
+        .connection.offline
+        .connection-dot {
+
+            background:
+                var(--red);
+
+            box-shadow:
+                0 0 12px var(--red);
+
         }
+
 
         /* =========================================================
            MAIN
         ========================================================= */
 
         .main {
+
             position: fixed;
+
             inset: 0;
 
             display: flex;
+
             align-items: center;
+
             justify-content: center;
 
             z-index: 5;
+
         }
+
 
         /* =========================================================
            EON CORE
         ========================================================= */
 
         .core {
+
             position: relative;
 
-            width: min(72vw, 650px);
-            height: min(72vw, 650px);
+            width:
+                min(72vw, 650px);
+
+            height:
+                min(72vw, 650px);
 
             display: flex;
+
             align-items: center;
+
             justify-content: center;
 
-            --core-size: min(72vw, 650px);
+            --core-size:
+                min(72vw, 650px);
+
         }
 
-        /* outer glow */
 
         .core::before {
+
             content: "";
 
             position: absolute;
+
             inset: 4%;
 
             border-radius: 50%;
@@ -218,25 +333,31 @@
                     transparent 55%
                 );
 
-            filter: blur(25px);
+            filter:
+                blur(25px);
 
-            opacity: 0.8;
+            opacity:
+                0.8;
 
             transition:
                 background 0.6s ease,
                 opacity 0.6s ease;
+
         }
+
 
         /* =========================================================
            ORBIT RINGS
         ========================================================= */
 
         .ring {
+
             position: absolute;
 
             border-radius: 50%;
 
-            border: 1px solid
+            border:
+                1px solid
                 rgba(255, 216, 74, 0.28);
 
             box-shadow:
@@ -246,37 +367,60 @@
             transition:
                 border-color 0.5s ease,
                 box-shadow 0.5s ease;
+
         }
 
+
         .ring-1 {
+
             width: 58%;
             height: 58%;
 
             animation:
-                rotateClockwise 22s linear infinite;
+                rotateClockwise
+                22s
+                linear
+                infinite;
+
         }
 
+
         .ring-2 {
+
             width: 68%;
             height: 68%;
 
-            border-style: dashed;
+            border-style:
+                dashed;
 
             animation:
-                rotateCounter 28s linear infinite;
+                rotateCounter
+                28s
+                linear
+                infinite;
+
         }
 
+
         .ring-3 {
+
             width: 78%;
             height: 78%;
 
-            opacity: 0.75;
+            opacity:
+                0.75;
 
             animation:
-                rotateClockwise 36s linear infinite;
+                rotateClockwise
+                36s
+                linear
+                infinite;
+
         }
 
+
         .ring-4 {
+
             width: 90%;
             height: 90%;
 
@@ -284,34 +428,58 @@
                 rgba(255, 216, 74, 0.12);
 
             animation:
-                rotateCounter 48s linear infinite;
+                rotateCounter
+                48s
+                linear
+                infinite;
+
         }
+
 
         @keyframes rotateClockwise {
+
             from {
-                transform: rotate(0deg);
+
+                transform:
+                    rotate(0deg);
+
             }
 
             to {
-                transform: rotate(360deg);
+
+                transform:
+                    rotate(360deg);
+
             }
+
         }
+
 
         @keyframes rotateCounter {
+
             from {
-                transform: rotate(360deg);
+
+                transform:
+                    rotate(360deg);
+
             }
 
             to {
-                transform: rotate(0deg);
+
+                transform:
+                    rotate(0deg);
+
             }
+
         }
+
 
         /* =========================================================
            HOLLOW CORE
         ========================================================= */
 
         .hollow-core {
+
             position: relative;
 
             width: 42%;
@@ -319,7 +487,9 @@
 
             border-radius: 50%;
 
-            border: 2px solid var(--orb-color);
+            border:
+                2px solid
+                var(--orb-color);
 
             background:
                 radial-gradient(
@@ -334,7 +504,9 @@
                 inset 0 0 25px rgba(255, 216, 74, 0.1);
 
             display: flex;
+
             align-items: center;
+
             justify-content: center;
 
             transition:
@@ -343,82 +515,131 @@
                 background 0.55s ease;
 
             z-index: 10;
+
         }
 
+
         .hollow-core::before {
+
             content: "";
 
             position: absolute;
+
             inset: -8%;
 
             border-radius: 50%;
 
-            border: 1px solid
+            border:
+                1px solid
                 rgba(255, 216, 74, 0.25);
 
-            animation: pulseRing 3s ease-in-out infinite;
+            animation:
+                pulseRing
+                3s
+                ease-in-out
+                infinite;
+
         }
 
+
         .hollow-core::after {
+
             content: "";
 
             position: absolute;
+
             inset: -17%;
 
             border-radius: 50%;
 
-            border: 1px solid
+            border:
+                1px solid
                 rgba(255, 216, 74, 0.08);
 
-            animation: pulseRing 4.5s ease-in-out infinite reverse;
+            animation:
+                pulseRing
+                4.5s
+                ease-in-out
+                infinite
+                reverse;
+
         }
+
 
         @keyframes pulseRing {
+
             0%,
             100% {
-                transform: scale(0.96);
-                opacity: 0.25;
+
+                transform:
+                    scale(0.96);
+
+                opacity:
+                    0.25;
+
             }
 
+
             50% {
-                transform: scale(1.04);
-                opacity: 0.75;
+
+                transform:
+                    scale(1.04);
+
+                opacity:
+                    0.75;
+
             }
+
         }
+
 
         /* =========================================================
            EON TEXT
         ========================================================= */
 
         .eon-text {
-            font-size: clamp(35px, 6vw, 72px);
 
-            font-weight: 800;
+            font-size:
+                clamp(
+                    35px,
+                    6vw,
+                    72px
+                );
 
-            letter-spacing: 12px;
+            font-weight:
+                800;
 
-            color: var(--orb-bright);
+            letter-spacing:
+                12px;
+
+            color:
+                var(--orb-bright);
 
             text-shadow:
                 0 0 8px var(--orb-color),
                 0 0 25px var(--orb-color),
                 0 0 55px rgba(255, 216, 74, 0.5);
 
-            user-select: none;
+            user-select:
+                none;
 
-            transform: translateX(6px);
+            transform:
+                translateX(6px);
 
             transition:
                 color 0.5s ease,
                 text-shadow 0.5s ease,
                 transform 0.3s ease;
+
         }
+
 
         /* =========================================================
            ORBIT PARTICLES
         ========================================================= */
 
         .particle {
+
             position: absolute;
 
             width: 4px;
@@ -426,109 +647,180 @@
 
             border-radius: 50%;
 
-            background: var(--orb-color);
+            background:
+                var(--orb-color);
 
             box-shadow:
                 0 0 6px var(--orb-color),
                 0 0 14px var(--orb-color);
 
-            transform-origin: center;
+            transform-origin:
+                center;
 
-            transition: background 0.5s ease;
+            transition:
+                background 0.5s ease;
+
         }
+
 
         .p1 {
-            animation: orbit1 7s linear infinite;
+
+            animation:
+                orbit1
+                7s
+                linear
+                infinite;
+
         }
+
 
         .p2 {
-            animation: orbit2 11s linear infinite;
+
+            animation:
+                orbit2
+                11s
+                linear
+                infinite;
+
         }
+
 
         .p3 {
-            animation: orbit3 15s linear infinite;
+
+            animation:
+                orbit3
+                15s
+                linear
+                infinite;
+
         }
+
 
         .p4 {
-            animation: orbit4 19s linear infinite;
+
+            animation:
+                orbit4
+                19s
+                linear
+                infinite;
+
         }
+
 
         @keyframes orbit1 {
+
             from {
+
                 transform:
                     rotate(0deg)
                     translateX(245px)
                     rotate(0deg);
+
             }
 
+
             to {
+
                 transform:
                     rotate(360deg)
                     translateX(245px)
                     rotate(-360deg);
+
             }
+
         }
+
 
         @keyframes orbit2 {
+
             from {
+
                 transform:
                     rotate(0deg)
                     translateX(205px)
                     rotate(0deg);
+
             }
 
+
             to {
+
                 transform:
                     rotate(-360deg)
                     translateX(205px)
                     rotate(360deg);
+
             }
+
         }
 
+
         @keyframes orbit3 {
+
             from {
+
                 transform:
                     rotate(0deg)
                     translateX(170px)
                     rotate(0deg);
+
             }
 
+
             to {
+
                 transform:
                     rotate(360deg)
                     translateX(170px)
                     rotate(-360deg);
+
             }
+
         }
 
+
         @keyframes orbit4 {
+
             from {
+
                 transform:
                     rotate(0deg)
                     translateX(135px)
                     rotate(0deg);
+
             }
 
+
             to {
+
                 transform:
                     rotate(-360deg)
                     translateX(135px)
                     rotate(360deg);
+
             }
+
         }
+
 
         /* =========================================================
            PARTICLE FIELD
         ========================================================= */
 
         .particle-field {
+
             position: absolute;
+
             inset: -10%;
 
-            pointer-events: none;
+            pointer-events:
+                none;
+
         }
 
+
         .field-particle {
+
             position: absolute;
 
             width: 2px;
@@ -536,63 +828,101 @@
 
             border-radius: 50%;
 
-            background: var(--orb-color);
+            background:
+                var(--orb-color);
 
-            opacity: 0.4;
+            opacity:
+                0.4;
 
             box-shadow:
                 0 0 6px var(--orb-color);
 
             animation:
-                fieldFloat var(--duration) ease-in-out infinite;
+                fieldFloat
+                var(--duration)
+                ease-in-out
+                infinite;
+
         }
 
+
         @keyframes fieldFloat {
+
             0%,
             100% {
-                transform: translate(0, 0);
-                opacity: 0.1;
+
+                transform:
+                    translate(0, 0);
+
+                opacity:
+                    0.1;
+
             }
 
+
             50% {
+
                 transform:
                     translate(
                         var(--x),
                         var(--y)
                     );
-                opacity: 0.75;
+
+                opacity:
+                    0.75;
+
             }
+
         }
 
+
         /* =========================================================
-           MODE STATE
+           NO LIMITS MODE
         ========================================================= */
 
         body.no-limits {
-            --orb-color: #ff2525;
-            --orb-bright: #ffb0b0;
-            --orb-dark: #7a0000;
+
+            --orb-color:
+                #ff2525;
+
+            --orb-bright:
+                #ffb0b0;
+
+            --orb-dark:
+                #7a0000;
+
         }
 
-        body.no-limits .core::before {
+
+        body.no-limits
+        .core::before {
+
             background:
                 radial-gradient(
                     circle,
                     rgba(255, 30, 30, 0.08),
                     transparent 55%
                 );
+
         }
 
-        body.no-limits .ring {
+
+        body.no-limits
+        .ring {
+
             border-color:
                 rgba(255, 40, 40, 0.32);
 
             box-shadow:
                 0 0 12px rgba(255, 30, 30, 0.18),
                 inset 0 0 10px rgba(255, 30, 30, 0.08);
+
         }
 
-        body.no-limits .hollow-core {
+
+        body.no-limits
+        .hollow-core {
+
             background:
                 radial-gradient(
                     circle,
@@ -604,97 +934,132 @@
                 0 0 15px #ff2525,
                 0 0 45px rgba(255, 30, 30, 0.45),
                 inset 0 0 30px rgba(255, 30, 30, 0.12);
+
         }
 
-        body.no-limits .eon-text {
+
+        body.no-limits
+        .eon-text {
+
             text-shadow:
                 0 0 8px #ff2525,
                 0 0 25px #ff2525,
                 0 0 65px rgba(255, 30, 30, 0.6);
+
         }
+
 
         /* =========================================================
            STATUS
         ========================================================= */
 
         .status {
+
             position: fixed;
 
             bottom: 95px;
+
             left: 50%;
 
-            transform: translateX(-50%);
+            transform:
+                translateX(-50%);
 
             z-index: 40;
 
             display: flex;
+
             align-items: center;
+
             gap: 10px;
 
             font-size: 10px;
+
             letter-spacing: 3px;
 
-            color: rgba(255, 255, 255, 0.45);
+            color:
+                rgba(255, 255, 255, 0.45);
 
-            transition: color 0.4s ease;
+            transition:
+                color 0.4s ease;
+
         }
 
+
         .status-dot {
+
             width: 6px;
             height: 6px;
 
             border-radius: 50%;
 
-            background: var(--orb-color);
+            background:
+                var(--orb-color);
 
             box-shadow:
                 0 0 8px var(--orb-color);
+
         }
 
+
         /* =========================================================
-           SIDE CONTROLS
+           CONTROLS
         ========================================================= */
 
         .controls {
+
             position: fixed;
 
             right: 25px;
+
             bottom: 25px;
 
             display: flex;
+
             gap: 9px;
 
             z-index: 50;
+
         }
 
+
         .control-button {
+
             width: 42px;
             height: 42px;
 
             border-radius: 50%;
 
-            border: 1px solid
+            border:
+                1px solid
                 rgba(255, 255, 255, 0.14);
 
             background:
                 rgba(255, 255, 255, 0.025);
 
-            color: rgba(255, 255, 255, 0.6);
+            color:
+                rgba(255, 255, 255, 0.6);
 
-            cursor: pointer;
+            cursor:
+                pointer;
 
             display: flex;
+
             align-items: center;
+
             justify-content: center;
 
             font-size: 16px;
 
             transition:
                 0.25s ease;
+
         }
 
+
         .control-button:hover {
-            color: var(--orb-color);
+
+            color:
+                var(--orb-color);
 
             border-color:
                 var(--orb-color);
@@ -703,37 +1068,49 @@
                 0 0 15px
                 rgba(255, 216, 74, 0.2);
 
-            transform: translateY(-2px);
+            transform:
+                translateY(-2px);
+
         }
+
 
         /* =========================================================
            COMMAND BAR
         ========================================================= */
 
         .command-container {
+
             position: fixed;
 
             left: 50%;
+
             bottom: 24px;
 
-            transform: translateX(-50%);
+            transform:
+                translateX(-50%);
 
-            width: min(650px, 70vw);
+            width:
+                min(650px, 70vw);
 
             z-index: 50;
 
             display: flex;
+
             gap: 8px;
+
         }
 
+
         .command-input {
+
             flex: 1;
 
             height: 46px;
 
             border-radius: 25px;
 
-            border: 1px solid
+            border:
+                1px solid
                 rgba(255, 255, 255, 0.13);
 
             outline: none;
@@ -741,41 +1118,54 @@
             background:
                 rgba(0, 0, 0, 0.72);
 
-            backdrop-filter: blur(15px);
+            backdrop-filter:
+                blur(15px);
 
             color: white;
 
-            padding: 0 20px;
+            padding:
+                0 20px;
 
             font-size: 13px;
 
-            letter-spacing: 0.3px;
+            letter-spacing:
+                0.3px;
 
             transition:
                 0.25s ease;
+
         }
+
 
         .command-input::placeholder {
+
             color:
                 rgba(255, 255, 255, 0.25);
+
         }
 
+
         .command-input:focus {
+
             border-color:
                 var(--orb-color);
 
             box-shadow:
                 0 0 20px
                 rgba(255, 216, 74, 0.08);
+
         }
 
+
         .send-button {
+
             width: 46px;
             height: 46px;
 
             border-radius: 50%;
 
-            border: 1px solid
+            border:
+                1px solid
                 var(--orb-color);
 
             background:
@@ -784,15 +1174,20 @@
             color:
                 var(--orb-color);
 
-            cursor: pointer;
+            cursor:
+                pointer;
 
-            font-size: 17px;
+            font-size:
+                17px;
 
             transition:
                 0.25s ease;
+
         }
 
+
         .send-button:hover {
+
             background:
                 rgba(255, 216, 74, 0.16);
 
@@ -800,101 +1195,183 @@
                 0 0 20px
                 rgba(255, 216, 74, 0.25);
 
-            transform: scale(1.05);
+            transform:
+                scale(1.05);
+
         }
+
 
         /* =========================================================
-           LISTENING STATE
+           LISTENING
         ========================================================= */
 
-        body.listening .hollow-core {
-            animation: listeningPulse 1.2s ease-in-out infinite;
+        body.listening
+        .hollow-core {
+
+            animation:
+                listeningPulse
+                1.2s
+                ease-in-out
+                infinite;
+
         }
 
-        body.listening .eon-text {
+
+        body.listening
+        .eon-text {
+
             transform:
                 translateX(6px)
                 scale(1.04);
+
         }
+
 
         @keyframes listeningPulse {
+
             0%,
             100% {
-                transform: scale(1);
+
+                transform:
+                    scale(1);
+
             }
+
 
             50% {
-                transform: scale(1.045);
+
+                transform:
+                    scale(1.045);
+
             }
+
         }
+
 
         /* =========================================================
-           THINKING STATE
+           THINKING
         ========================================================= */
 
-        body.thinking .ring-1 {
-            animation-duration: 3s;
+        body.thinking
+        .ring-1 {
+
+            animation-duration:
+                3s;
+
         }
 
-        body.thinking .ring-2 {
-            animation-duration: 4s;
+
+        body.thinking
+        .ring-2 {
+
+            animation-duration:
+                4s;
+
         }
 
-        body.thinking .ring-3 {
-            animation-duration: 5s;
+
+        body.thinking
+        .ring-3 {
+
+            animation-duration:
+                5s;
+
         }
 
-        body.thinking .hollow-core {
+
+        body.thinking
+        .hollow-core {
+
             box-shadow:
                 0 0 18px var(--orb-color),
                 0 0 60px rgba(255, 216, 74, 0.42),
                 inset 0 0 35px rgba(255, 216, 74, 0.13);
+
         }
+
 
         /* =========================================================
-           SPEAKING STATE
+           SPEAKING
         ========================================================= */
 
-        body.speaking .hollow-core {
-            animation: speakingPulse 0.55s ease-in-out infinite;
+        body.speaking
+        .hollow-core {
+
+            animation:
+                speakingPulse
+                0.55s
+                ease-in-out
+                infinite;
+
         }
+
 
         @keyframes speakingPulse {
+
             0%,
             100% {
-                transform: scale(1);
+
+                transform:
+                    scale(1);
+
             }
 
+
             50% {
-                transform: scale(1.065);
+
+                transform:
+                    scale(1.065);
+
             }
+
         }
+
 
         /* =========================================================
            ALERT
         ========================================================= */
 
-        body.alert .hollow-core {
-            animation: alertPulse 0.25s ease-in-out infinite;
+        body.alert
+        .hollow-core {
+
+            animation:
+                alertPulse
+                0.25s
+                ease-in-out
+                infinite;
+
         }
+
 
         @keyframes alertPulse {
+
             0%,
             100% {
-                transform: scale(1);
+
+                transform:
+                    scale(1);
+
             }
 
+
             50% {
-                transform: scale(1.09);
+
+                transform:
+                    scale(1.09);
+
             }
+
         }
+
 
         /* =========================================================
            MODE BURST
         ========================================================= */
 
         .burst {
+
             position: fixed;
+
             left: 50%;
             top: 50%;
 
@@ -903,138 +1380,209 @@
 
             border-radius: 50%;
 
-            border: 2px solid
+            border:
+                2px solid
                 var(--orb-color);
 
             transform:
                 translate(-50%, -50%)
                 scale(0);
 
-            opacity: 0;
+            opacity:
+                0;
 
-            pointer-events: none;
+            pointer-events:
+                none;
 
             z-index: 20;
+
         }
+
 
         .burst.active {
+
             animation:
-                burstAnimation 0.9s ease-out forwards;
+                burstAnimation
+                0.9s
+                ease-out
+                forwards;
+
         }
 
+
         @keyframes burstAnimation {
+
             0% {
+
                 transform:
                     translate(-50%, -50%)
                     scale(0);
 
-                opacity: 0.95;
+                opacity:
+                    0.95;
+
             }
+
 
             70% {
-                opacity: 0.45;
+
+                opacity:
+                    0.45;
+
             }
 
+
             100% {
+
                 transform:
                     translate(-50%, -50%)
                     scale(35);
 
-                opacity: 0;
+                opacity:
+                    0;
+
             }
+
         }
 
+
         .flash {
+
             position: fixed;
+
             inset: 0;
 
             background:
                 var(--orb-color);
 
-            opacity: 0;
+            opacity:
+                0;
 
-            pointer-events: none;
+            pointer-events:
+                none;
 
             z-index: 100;
+
         }
+
 
         .flash.active {
+
             animation:
-                flashAnimation 0.35s ease-out;
+                flashAnimation
+                0.35s
+                ease-out;
+
         }
+
 
         @keyframes flashAnimation {
+
             0% {
-                opacity: 0;
+
+                opacity:
+                    0;
+
             }
+
 
             20% {
-                opacity: 0.12;
+
+                opacity:
+                    0.12;
+
             }
 
+
             100% {
-                opacity: 0;
+
+                opacity:
+                    0;
+
             }
+
         }
+
 
         /* =========================================================
            RESPONSE PANEL
         ========================================================= */
 
         .response-panel {
+
             position: fixed;
 
             left: 50%;
+
             top: 77%;
 
             transform:
                 translate(-50%, -50%)
                 translateY(20px);
 
-            width: min(620px, 72vw);
+            width:
+                min(620px, 72vw);
 
-            max-height: 110px;
+            max-height:
+                110px;
 
-            overflow-y: auto;
+            overflow-y:
+                auto;
 
-            padding: 12px 18px;
+            padding:
+                12px 18px;
 
-            border-radius: 15px;
+            border-radius:
+                15px;
 
-            border: 1px solid
+            border:
+                1px solid
                 rgba(255, 216, 74, 0.08);
 
             background:
                 rgba(0, 0, 0, 0.42);
 
-            backdrop-filter: blur(12px);
+            backdrop-filter:
+                blur(12px);
 
             color:
                 rgba(255, 255, 255, 0.65);
 
-            font-size: 12px;
+            font-size:
+                12px;
 
-            line-height: 1.55;
+            line-height:
+                1.55;
 
-            text-align: center;
+            text-align:
+                center;
 
-            opacity: 0;
+            opacity:
+                0;
 
-            pointer-events: none;
+            pointer-events:
+                none;
 
             transition:
                 0.35s ease;
 
-            z-index: 30;
+            z-index:
+                30;
+
         }
 
+
         .response-panel.show {
-            opacity: 1;
+
+            opacity:
+                1;
 
             transform:
                 translate(-50%, -50%)
                 translateY(0);
+
         }
+
 
         /* =========================================================
            RESPONSIVE
@@ -1043,74 +1591,144 @@
         @media (max-width: 700px) {
 
             .top-bar {
-                padding: 0 17px;
+
+                padding:
+                    0 17px;
+
             }
+
 
             .brand {
-                font-size: 15px;
-                letter-spacing: 5px;
+
+                font-size:
+                    15px;
+
+                letter-spacing:
+                    5px;
+
             }
+
 
             .connection {
-                font-size: 9px;
-                letter-spacing: 1.5px;
+
+                font-size:
+                    9px;
+
+                letter-spacing:
+                    1.5px;
+
             }
+
 
             .core {
-                width: 90vw;
-                height: 90vw;
+
+                width:
+                    90vw;
+
+                height:
+                    90vw;
+
             }
+
 
             .command-container {
-                width: 82vw;
-                bottom: 20px;
+
+                width:
+                    82vw;
+
+                bottom:
+                    20px;
+
             }
+
 
             .controls {
-                right: 15px;
-                bottom: 78px;
+
+                right:
+                    15px;
+
+                bottom:
+                    78px;
+
             }
+
 
             .status {
-                bottom: 80px;
+
+                bottom:
+                    80px;
+
             }
+
 
             .response-panel {
-                width: 82vw;
-                top: 73%;
+
+                width:
+                    82vw;
+
+                top:
+                    73%;
+
             }
 
+
             .eon-text {
-                letter-spacing: 7px;
+
+                letter-spacing:
+                    7px;
+
             }
+
         }
+
 
         @media (max-height: 650px) {
 
             .response-panel {
-                display: none;
+
+                display:
+                    none;
+
             }
+
 
             .status {
-                bottom: 75px;
+
+                bottom:
+                    75px;
+
             }
 
+
             .command-container {
-                bottom: 15px;
+
+                bottom:
+                    15px;
+
             }
+
         }
+
     </style>
+
 </head>
+
 
 <body>
 
+
     <div class="background"></div>
 
+
     <!-- =========================================================
-         STAR FIELD
+         STARS
     ========================================================== -->
 
-    <div class="stars" id="stars"></div>
+    <div
+        class="stars"
+        id="stars"
+    ></div>
+
 
     <!-- =========================================================
          TOP BAR
@@ -1122,17 +1740,27 @@
             EON
         </div>
 
+
         <div
             class="connection"
             id="connection"
         >
-            <span class="connection-dot"></span>
-            <span id="connectionText">
+
+            <span
+                class="connection-dot"
+            ></span>
+
+
+            <span
+                id="connectionText"
+            >
                 CONNECTING
             </span>
+
         </div>
 
     </header>
+
 
     <!-- =========================================================
          MAIN EON CORE
@@ -1140,19 +1768,50 @@
 
     <main class="main">
 
-        <div class="core" id="core">
+        <div
+            class="core"
+            id="core"
+        >
 
-            <div class="particle-field" id="particleField"></div>
+            <div
+                class="particle-field"
+                id="particleField"
+            ></div>
 
-            <div class="ring ring-4"></div>
-            <div class="ring ring-3"></div>
-            <div class="ring ring-2"></div>
-            <div class="ring ring-1"></div>
 
-            <div class="particle p1"></div>
-            <div class="particle p2"></div>
-            <div class="particle p3"></div>
-            <div class="particle p4"></div>
+            <div
+                class="ring ring-4"
+            ></div>
+
+            <div
+                class="ring ring-3"
+            ></div>
+
+            <div
+                class="ring ring-2"
+            ></div>
+
+            <div
+                class="ring ring-1"
+            ></div>
+
+
+            <div
+                class="particle p1"
+            ></div>
+
+            <div
+                class="particle p2"
+            ></div>
+
+            <div
+                class="particle p3"
+            ></div>
+
+            <div
+                class="particle p4"
+            ></div>
+
 
             <div class="hollow-core">
 
@@ -1166,6 +1825,7 @@
 
     </main>
 
+
     <!-- =========================================================
          RESPONSE
     ========================================================== -->
@@ -1175,25 +1835,33 @@
         id="responsePanel"
     ></div>
 
+
     <!-- =========================================================
          STATUS
     ========================================================== -->
 
     <div class="status">
 
-        <span class="status-dot"></span>
+        <span
+            class="status-dot"
+        ></span>
 
-        <span id="statusText">
+
+        <span
+            id="statusText"
+        >
             EON ONLINE
         </span>
 
     </div>
+
 
     <!-- =========================================================
          CONTROLS
     ========================================================== -->
 
     <div class="controls">
+
 
         <button
             class="control-button"
@@ -1203,6 +1871,7 @@
             🎙
         </button>
 
+
         <button
             class="control-button"
             id="statusButton"
@@ -1211,6 +1880,7 @@
             ◉
         </button>
 
+
         <button
             class="control-button"
             id="resetButton"
@@ -1218,6 +1888,7 @@
         >
             ↻
         </button>
+
 
         <button
             class="control-button"
@@ -1229,11 +1900,14 @@
 
     </div>
 
+
     <!-- =========================================================
-         COMMAND INPUT
+         COMMAND BAR
     ========================================================== -->
 
-    <div class="command-container">
+    <div
+        class="command-container"
+    >
 
         <input
             id="commandInput"
@@ -1242,6 +1916,7 @@
             autocomplete="off"
             placeholder="Speak to EON..."
         >
+
 
         <button
             id="sendButton"
@@ -1253,6 +1928,7 @@
 
     </div>
 
+
     <!-- =========================================================
          MODE EFFECTS
     ========================================================== -->
@@ -1262,188 +1938,314 @@
         id="burst"
     ></div>
 
+
     <div
         class="flash"
         id="flash"
     ></div>
 
 
+
     <script>
+
 
         /* =========================================================
            DOM
-        ========================================================== */
+        ========================================================= */
 
-        const body = document.body;
+        const body =
+            document.body;
+
 
         const commandInput =
-            document.getElementById("commandInput");
+            document.getElementById(
+                "commandInput"
+            );
+
 
         const sendButton =
-            document.getElementById("sendButton");
+            document.getElementById(
+                "sendButton"
+            );
+
 
         const micButton =
-            document.getElementById("micButton");
+            document.getElementById(
+                "micButton"
+            );
+
 
         const statusButton =
-            document.getElementById("statusButton");
+            document.getElementById(
+                "statusButton"
+            );
+
 
         const resetButton =
-            document.getElementById("resetButton");
+            document.getElementById(
+                "resetButton"
+            );
+
 
         const fullscreenButton =
-            document.getElementById("fullscreenButton");
+            document.getElementById(
+                "fullscreenButton"
+            );
+
 
         const statusText =
-            document.getElementById("statusText");
+            document.getElementById(
+                "statusText"
+            );
+
 
         const connection =
-            document.getElementById("connection");
+            document.getElementById(
+                "connection"
+            );
+
 
         const connectionText =
-            document.getElementById("connectionText");
+            document.getElementById(
+                "connectionText"
+            );
+
 
         const responsePanel =
-            document.getElementById("responsePanel");
+            document.getElementById(
+                "responsePanel"
+            );
+
 
         const burst =
-            document.getElementById("burst");
+            document.getElementById(
+                "burst"
+            );
+
 
         const flash =
-            document.getElementById("flash");
+            document.getElementById(
+                "flash"
+            );
+
 
         const particleField =
-            document.getElementById("particleField");
+            document.getElementById(
+                "particleField"
+            );
+
 
 
         /* =========================================================
            STAR GENERATION
-        ========================================================== */
+        ========================================================= */
 
         function createStars() {
 
             const stars =
-                document.getElementById("stars");
+                document.getElementById(
+                    "stars"
+                );
+
 
             const count =
-                window.innerWidth < 700 ? 65 : 120;
+                window.innerWidth < 700
+                    ? 65
+                    : 120;
 
-            for (let i = 0; i < count; i++) {
+
+            for (
+                let i = 0;
+                i < count;
+                i++
+            ) {
 
                 const star =
-                    document.createElement("div");
+                    document.createElement(
+                        "div"
+                    );
 
-                star.className = "star";
+
+                star.className =
+                    "star";
+
 
                 star.style.left =
                     Math.random() * 100 + "%";
 
+
                 star.style.top =
                     Math.random() * 100 + "%";
+
 
                 const size =
                     Math.random() * 2 + 1;
 
+
                 star.style.width =
                     size + "px";
+
 
                 star.style.height =
                     size + "px";
 
+
                 star.style.animationDuration =
-                    (5 + Math.random() * 10) + "s";
+                    (
+                        5 +
+                        Math.random() * 10
+                    ) + "s";
+
 
                 star.style.animationDelay =
-                    (-Math.random() * 10) + "s";
+                    (
+                        -Math.random() * 10
+                    ) + "s";
 
-                stars.appendChild(star);
+
+                stars.appendChild(
+                    star
+                );
+
             }
+
         }
 
 
+
         /* =========================================================
-           PARTICLE FIELD
-        ========================================================== */
+           PARTICLES
+        ========================================================= */
 
         function createParticles() {
 
             const count =
-                window.innerWidth < 700 ? 20 : 35;
+                window.innerWidth < 700
+                    ? 20
+                    : 35;
 
-            for (let i = 0; i < count; i++) {
+
+            for (
+                let i = 0;
+                i < count;
+                i++
+            ) {
 
                 const particle =
-                    document.createElement("div");
+                    document.createElement(
+                        "div"
+                    );
+
 
                 particle.className =
                     "field-particle";
 
+
                 particle.style.left =
                     Math.random() * 100 + "%";
+
 
                 particle.style.top =
                     Math.random() * 100 + "%";
 
+
                 particle.style.setProperty(
                     "--x",
-                    ((Math.random() - 0.5) * 100) + "px"
+                    (
+                        (Math.random() - 0.5) *
+                        100
+                    ) + "px"
                 );
+
 
                 particle.style.setProperty(
                     "--y",
-                    ((Math.random() - 0.5) * 100) + "px"
+                    (
+                        (Math.random() - 0.5) *
+                        100
+                    ) + "px"
                 );
+
 
                 particle.style.setProperty(
                     "--duration",
-                    (4 + Math.random() * 7) + "s"
+                    (
+                        4 +
+                        Math.random() * 7
+                    ) + "s"
                 );
 
+
                 particle.style.animationDelay =
-                    (-Math.random() * 8) + "s";
+                    (
+                        -Math.random() * 8
+                    ) + "s";
+
 
                 particleField.appendChild(
                     particle
                 );
+
             }
+
         }
 
 
         createStars();
+
         createParticles();
 
 
-        /* =========================================================
-           AUDIO ENGINE
-        ========================================================== */
 
-        let eonAudio = null;
+        /* =========================================================
+           AUDIO
+        ========================================================= */
+
+        let eonAudio =
+            null;
+
 
         function getEONAudio() {
 
             if (!eonAudio) {
 
-                eonAudio = new (
+                const AudioContext =
                     window.AudioContext ||
-                    window.webkitAudioContext
-                )();
+                    window.webkitAudioContext;
+
+
+                if (!AudioContext) {
+
+                    return null;
+
+                }
+
+
+                eonAudio =
+                    new AudioContext();
 
             }
+
 
             if (
                 eonAudio.state ===
                 "suspended"
             ) {
+
                 eonAudio.resume();
+
             }
 
+
             return eonAudio;
+
         }
+
 
 
         /* =========================================================
            NORMAL MODE SOUND
-        ========================================================== */
+        ========================================================= */
 
         function playNormalModeSound() {
 
@@ -1452,47 +2254,72 @@
                 const audio =
                     getEONAudio();
 
+
+                if (!audio) {
+                    return;
+                }
+
+
                 const now =
                     audio.currentTime;
+
 
                 const oscillator =
                     audio.createOscillator();
 
+
                 const gain =
                     audio.createGain();
 
+
                 oscillator.type =
                     "sine";
+
 
                 oscillator.frequency.setValueAtTime(
                     180,
                     now
                 );
 
+
                 oscillator.frequency.exponentialRampToValueAtTime(
                     520,
                     now + 0.45
                 );
+
 
                 gain.gain.setValueAtTime(
                     0.0001,
                     now
                 );
 
+
                 gain.gain.exponentialRampToValueAtTime(
                     0.18,
                     now + 0.08
                 );
+
 
                 gain.gain.exponentialRampToValueAtTime(
                     0.0001,
                     now + 0.65
                 );
 
-                oscillator.connect(gain);
-                gain.connect(audio.destination);
 
-                oscillator.start(now);
+                oscillator.connect(
+                    gain
+                );
+
+
+                gain.connect(
+                    audio.destination
+                );
+
+
+                oscillator.start(
+                    now
+                );
+
 
                 oscillator.stop(
                     now + 0.7
@@ -1506,12 +2333,14 @@
                 );
 
             }
+
         }
+
 
 
         /* =========================================================
            NO LIMITS SOUND
-        ========================================================== */
+        ========================================================= */
 
         function playNoLimitsSound() {
 
@@ -1520,101 +2349,134 @@
                 const audio =
                     getEONAudio();
 
+
+                if (!audio) {
+                    return;
+                }
+
+
                 const now =
                     audio.currentTime;
 
 
-                /* Main rising tone */
-
                 const oscillator =
                     audio.createOscillator();
+
 
                 const gain =
                     audio.createGain();
 
+
                 oscillator.type =
                     "sawtooth";
+
 
                 oscillator.frequency.setValueAtTime(
                     90,
                     now
                 );
 
+
                 oscillator.frequency.exponentialRampToValueAtTime(
                     780,
                     now + 0.25
                 );
+
 
                 gain.gain.setValueAtTime(
                     0.0001,
                     now
                 );
 
+
                 gain.gain.exponentialRampToValueAtTime(
                     0.3,
                     now + 0.04
                 );
+
 
                 gain.gain.exponentialRampToValueAtTime(
                     0.0001,
                     now + 0.8
                 );
 
-                oscillator.connect(gain);
-                gain.connect(audio.destination);
 
-                oscillator.start(now);
+                oscillator.connect(
+                    gain
+                );
+
+
+                gain.connect(
+                    audio.destination
+                );
+
+
+                oscillator.start(
+                    now
+                );
+
 
                 oscillator.stop(
                     now + 0.85
                 );
 
 
-                /* Burst tone */
-
                 const burstOsc =
                     audio.createOscillator();
+
 
                 const burstGain =
                     audio.createGain();
 
+
                 burstOsc.type =
                     "square";
+
 
                 burstOsc.frequency.setValueAtTime(
                     1200,
                     now
                 );
 
+
                 burstOsc.frequency.exponentialRampToValueAtTime(
                     220,
                     now + 0.35
                 );
+
 
                 burstGain.gain.setValueAtTime(
                     0.0001,
                     now
                 );
 
+
                 burstGain.gain.exponentialRampToValueAtTime(
                     0.12,
                     now + 0.02
                 );
+
 
                 burstGain.gain.exponentialRampToValueAtTime(
                     0.0001,
                     now + 0.4
                 );
 
+
                 burstOsc.connect(
                     burstGain
                 );
+
 
                 burstGain.connect(
                     audio.destination
                 );
 
-                burstOsc.start(now);
+
+                burstOsc.start(
+                    now
+                );
+
 
                 burstOsc.stop(
                     now + 0.45
@@ -1628,13 +2490,18 @@
                 );
 
             }
+
         }
 
 
-        function playModeSound(mode) {
+
+        function playModeSound(
+            mode
+        ) {
 
             if (
-                mode === "NO_LIMITS"
+                mode ===
+                "NO_LIMITS"
             ) {
 
                 playNoLimitsSound();
@@ -1648,9 +2515,10 @@
         }
 
 
+
         /* =========================================================
-           MODE BURST
-        ========================================================== */
+           BURST
+        ========================================================= */
 
         function triggerBurst() {
 
@@ -1658,69 +2526,94 @@
                 "active"
             );
 
+
             flash.classList.remove(
                 "active"
             );
 
+
             void burst.offsetWidth;
+
             void flash.offsetWidth;
+
 
             burst.classList.add(
                 "active"
             );
 
+
             flash.classList.add(
                 "active"
             );
 
-            setTimeout(() => {
 
-                burst.classList.remove(
-                    "active"
-                );
+            setTimeout(
+                () => {
 
-                flash.classList.remove(
-                    "active"
-                );
+                    burst.classList.remove(
+                        "active"
+                    );
 
-            }, 1000);
+                    flash.classList.remove(
+                        "active"
+                    );
+
+                },
+                1000
+            );
+
         }
 
 
+
         /* =========================================================
-           MODE SWITCH
-        ========================================================== */
+           MODE
+        ========================================================= */
 
         let currentMode =
             "NORMAL";
 
 
-        function setMode(mode) {
+        function setMode(
+            mode
+        ) {
 
             if (
-                mode === currentMode
+                mode ===
+                currentMode
             ) {
+
                 return;
+
             }
+
 
             currentMode =
                 mode;
 
+
             triggerBurst();
 
-            playModeSound(mode);
+
+            playModeSound(
+                mode
+            );
+
 
             if (
-                mode === "NO_LIMITS"
+                mode ===
+                "NO_LIMITS"
             ) {
 
                 body.classList.add(
                     "no-limits"
                 );
 
+
                 body.classList.add(
                     "alert"
                 );
+
 
                 statusText.textContent =
                     "HIGH ALERT";
@@ -1731,20 +2624,24 @@
                     "no-limits"
                 );
 
+
                 body.classList.remove(
                     "alert"
                 );
+
 
                 statusText.textContent =
                     "EON ONLINE";
 
             }
+
         }
 
 
+
         /* =========================================================
-           DETECT MODE COMMANDS
-        ========================================================== */
+           MODE COMMAND DETECTION
+        ========================================================= */
 
         function detectModeCommand(
             text
@@ -1766,7 +2663,9 @@
                     "NO_LIMITS"
                 );
 
+
                 return true;
+
             }
 
 
@@ -1780,75 +2679,101 @@
                     "NORMAL"
                 );
 
+
                 return true;
+
             }
 
 
             return false;
+
         }
 
 
-        /* =========================================================
-           SPEECH SYNTHESIS
-        ========================================================== */
 
-        function speak(text) {
+        /* =========================================================
+           SPEECH
+        ========================================================= */
+
+        function speak(
+            text
+        ) {
 
             if (
-                !("speechSynthesis" in window)
+                !(
+                    "speechSynthesis"
+                    in window
+                )
             ) {
+
                 return;
+
             }
 
+
             window.speechSynthesis.cancel();
+
 
             const utterance =
                 new SpeechSynthesisUtterance(
                     text
                 );
 
+
             utterance.lang =
                 "en-IN";
 
+
             utterance.rate =
-                currentMode === "NO_LIMITS"
+                currentMode ===
+                "NO_LIMITS"
                     ? 0.88
                     : 0.96;
 
+
             utterance.pitch =
-                currentMode === "NO_LIMITS"
+                currentMode ===
+                "NO_LIMITS"
                     ? 0.55
                     : 0.9;
+
 
             body.classList.add(
                 "speaking"
             );
 
-            utterance.onend = () => {
 
-                body.classList.remove(
-                    "speaking"
-                );
+            utterance.onend =
+                () => {
 
-            };
+                    body.classList.remove(
+                        "speaking"
+                    );
 
-            utterance.onerror = () => {
+                };
 
-                body.classList.remove(
-                    "speaking"
-                );
 
-            };
+            utterance.onerror =
+                () => {
+
+                    body.classList.remove(
+                        "speaking"
+                    );
+
+                };
+
 
             window.speechSynthesis.speak(
                 utterance
             );
+
         }
+
 
 
         /* =========================================================
            RESPONSE DISPLAY
-        ========================================================== */
+        ========================================================= */
 
         function showResponse(
             text
@@ -1857,28 +2782,36 @@
             responsePanel.textContent =
                 text;
 
+
             responsePanel.classList.add(
                 "show"
             );
+
 
             clearTimeout(
                 window.eonResponseTimer
             );
 
+
             window.eonResponseTimer =
-                setTimeout(() => {
+                setTimeout(
+                    () => {
 
-                    responsePanel.classList.remove(
-                        "show"
-                    );
+                        responsePanel.classList.remove(
+                            "show"
+                        );
 
-                }, 9000);
+                    },
+                    9000
+                );
+
         }
 
 
+
         /* =========================================================
-           EON API
-        ========================================================== */
+           EON COMMAND
+        ========================================================= */
 
         async function sendCommand(
             command
@@ -1887,32 +2820,34 @@
             const cleanCommand =
                 command.trim();
 
-            if (!cleanCommand) {
+
+            if (
+                !cleanCommand
+            ) {
+
                 return;
+
             }
 
-            /*
-             * No API key.
-             * The backend now accepts the request directly.
-             */
 
             body.classList.remove(
                 "listening"
             );
 
+
             body.classList.add(
                 "thinking"
             );
 
+
             statusText.textContent =
                 "EON THINKING";
+
 
             showResponse(
                 "Processing..."
             );
 
-
-            /* Detect visual mode locally */
 
             detectModeCommand(
                 cleanCommand
@@ -1925,7 +2860,8 @@
                     await fetch(
                         "/api/command",
                         {
-                            method: "POST",
+                            method:
+                                "POST",
 
                             headers: {
                                 "Content-Type":
@@ -1941,8 +2877,21 @@
                     );
 
 
-                const data =
-                    await response.json();
+                let data;
+
+
+                try {
+
+                    data =
+                        await response.json();
+
+                } catch (jsonError) {
+
+                    throw new Error(
+                        "Invalid response from EON server."
+                    );
+
+                }
 
 
                 body.classList.remove(
@@ -1950,74 +2899,146 @@
                 );
 
 
+                /* =========================================
+                   SUCCESS
+                ========================================= */
+
                 if (
+                    response.ok &&
                     data.success
                 ) {
 
                     const result =
                         data.response;
 
+
                     const text =
                         typeof result ===
                         "string"
+
                             ? result
+
                             : JSON.stringify(
                                 result
                             );
 
 
                     showResponse(
-                        text
+                        text ||
+                        "EON completed the request."
                     );
+
 
                     statusText.textContent =
                         currentMode ===
                         "NO_LIMITS"
+
                             ? "HIGH ALERT"
+
                             : "EON ONLINE";
 
 
-                    if (text) {
+                    if (
+                        text
+                    ) {
 
-                        speak(text);
+                        speak(
+                            text
+                        );
 
                     }
 
-                } else {
 
-                    showResponse(
-                        data.error ||
-                        "EON encountered an error."
-                    );
-
-                    statusText.textContent =
-                        "SYSTEM ERROR";
+                    return;
 
                 }
+
+
+                /* =========================================
+                   BACKEND ERROR
+                ========================================= */
+
+                let errorMessage =
+                    data.error ||
+                    "EON encountered an error.";
+
+
+                if (
+                    data.type
+                ) {
+
+                    errorMessage +=
+                        " [" +
+                        data.type +
+                        "]";
+
+                }
+
+
+                console.error(
+                    "EON Backend Error:",
+                    data
+                );
+
+
+                /*
+                 * If the backend supplied a traceback,
+                 * keep it in the browser console rather
+                 * than flooding the visual interface.
+                 */
+
+                if (
+                    data.traceback
+                ) {
+
+                    console.error(
+                        "EON Traceback:\n" +
+                        data.traceback
+                    );
+
+                }
+
+
+                showResponse(
+                    errorMessage
+                );
+
+
+                statusText.textContent =
+                    "SYSTEM ERROR";
+
 
             } catch (error) {
 
                 console.error(
+                    "EON Connection Error:",
                     error
                 );
+
 
                 body.classList.remove(
                     "thinking"
                 );
 
+
                 showResponse(
-                    "Unable to connect to EON Core."
+                    "Unable to connect to EON Core: " +
+                    error.message
                 );
+
 
                 statusText.textContent =
                     "CONNECTION ERROR";
+
             }
+
         }
+
 
 
         /* =========================================================
            SEND BUTTON
-        ========================================================== */
+        ========================================================= */
 
         sendButton.addEventListener(
             "click",
@@ -2026,12 +3047,19 @@
                 const command =
                     commandInput.value;
 
-                if (!command.trim()) {
+
+                if (
+                    !command.trim()
+                ) {
+
                     return;
+
                 }
+
 
                 commandInput.value =
                     "";
+
 
                 sendCommand(
                     command
@@ -2041,9 +3069,10 @@
         );
 
 
+
         /* =========================================================
-           ENTER KEY
-        ========================================================== */
+           ENTER
+        ========================================================= */
 
         commandInput.addEventListener(
             "keydown",
@@ -2064,31 +3093,39 @@
         );
 
 
+
         /* =========================================================
            SPEECH RECOGNITION
-        ========================================================== */
+        ========================================================= */
 
         const SpeechRecognition =
             window.SpeechRecognition ||
             window.webkitSpeechRecognition;
 
+
         let recognition =
             null;
+
 
         let isListening =
             false;
 
 
-        if (SpeechRecognition) {
+        if (
+            SpeechRecognition
+        ) {
 
             recognition =
                 new SpeechRecognition();
 
+
             recognition.continuous =
                 false;
 
+
             recognition.interimResults =
                 false;
+
 
             recognition.lang =
                 "en-IN";
@@ -2100,9 +3137,11 @@
                     isListening =
                         true;
 
+
                     body.classList.add(
                         "listening"
                     );
+
 
                     statusText.textContent =
                         "LISTENING";
@@ -2117,15 +3156,19 @@
                         event.results[0][0]
                             .transcript;
 
+
                     commandInput.value =
                         transcript;
+
 
                     isListening =
                         false;
 
+
                     body.classList.remove(
                         "listening"
                     );
+
 
                     sendCommand(
                         transcript
@@ -2142,15 +3185,23 @@
                         event.error
                     );
 
+
                     isListening =
                         false;
+
 
                     body.classList.remove(
                         "listening"
                     );
 
+
                     statusText.textContent =
-                        "EON ONLINE";
+                        currentMode ===
+                        "NO_LIMITS"
+
+                            ? "HIGH ALERT"
+
+                            : "EON ONLINE";
 
                 };
 
@@ -2161,9 +3212,11 @@
                     isListening =
                         false;
 
+
                     body.classList.remove(
                         "listening"
                     );
+
 
                     if (
                         currentMode ===
@@ -2182,24 +3235,21 @@
             micButton.style.opacity =
                 "0.35";
 
+
             micButton.title =
                 "Speech recognition unavailable";
+
         }
 
 
+
         /* =========================================================
-           MICROPHONE BUTTON
-        ========================================================== */
+           MICROPHONE
+        ========================================================= */
 
         micButton.addEventListener(
             "click",
             () => {
-
-                /*
-                 * Browser audio permission normally requires
-                 * a user gesture, so clicking this button also
-                 * safely initializes the EON audio engine.
-                 */
 
                 try {
 
@@ -2208,17 +3258,23 @@
                 } catch (_) {}
 
 
-                if (!recognition) {
+                if (
+                    !recognition
+                ) {
 
                     showResponse(
                         "Voice recognition is not supported by this browser."
                     );
 
+
                     return;
+
                 }
 
 
-                if (isListening) {
+                if (
+                    isListening
+                ) {
 
                     recognition.stop();
 
@@ -2243,9 +3299,10 @@
         );
 
 
+
         /* =========================================================
-           STATUS BUTTON
-        ========================================================== */
+           STATUS
+        ========================================================= */
 
         statusButton.addEventListener(
             "click",
@@ -2254,17 +3311,25 @@
                 statusText.textContent =
                     "CHECKING SYSTEM";
 
+
                 try {
 
                     const response =
                         await fetch(
-                            "/api/status"
+                            "/api/status",
+                            {
+                                cache:
+                                    "no-store"
+                            }
                         );
+
 
                     const data =
                         await response.json();
 
+
                     if (
+                        response.ok &&
                         data.success
                     ) {
 
@@ -2272,25 +3337,39 @@
                             "EON Core is ONLINE."
                         );
 
+
                         statusText.textContent =
                             currentMode ===
                             "NO_LIMITS"
+
                                 ? "HIGH ALERT"
+
                                 : "EON ONLINE";
 
                     } else {
 
                         showResponse(
+                            data.error ||
                             "EON Core returned an error."
                         );
+
+
+                        statusText.textContent =
+                            "SYSTEM ERROR";
 
                     }
 
                 } catch (error) {
 
+                    console.error(
+                        error
+                    );
+
+
                     showResponse(
                         "EON Core is unreachable."
                     );
+
 
                     statusText.textContent =
                         "OFFLINE";
@@ -2301,9 +3380,10 @@
         );
 
 
+
         /* =========================================================
-           RESET BUTTON
-        ========================================================== */
+           RESET
+        ========================================================= */
 
         resetButton.addEventListener(
             "click",
@@ -2320,11 +3400,13 @@
                             }
                         );
 
+
                     const data =
                         await response.json();
 
 
                     if (
+                        response.ok &&
                         data.success
                     ) {
 
@@ -2332,9 +3414,11 @@
                             "NORMAL"
                         );
 
+
                         showResponse(
                             "EON session reset."
                         );
+
 
                         statusText.textContent =
                             "EON ONLINE";
@@ -2342,12 +3426,18 @@
                     } else {
 
                         showResponse(
+                            data.error ||
                             "Unable to reset EON."
                         );
 
                     }
 
                 } catch (error) {
+
+                    console.error(
+                        error
+                    );
+
 
                     showResponse(
                         "Reset request failed."
@@ -2359,9 +3449,10 @@
         );
 
 
+
         /* =========================================================
            FULLSCREEN
-        ========================================================== */
+        ========================================================= */
 
         fullscreenButton.addEventListener(
             "click",
@@ -2397,9 +3488,10 @@
         );
 
 
+
         /* =========================================================
-           CONNECTION CHECK
-        ========================================================== */
+           CONNECTION
+        ========================================================= */
 
         async function checkConnection() {
 
@@ -2409,9 +3501,11 @@
                     await fetch(
                         "/health",
                         {
-                            cache: "no-store"
+                            cache:
+                                "no-store"
                         }
                     );
+
 
                 if (
                     response.ok
@@ -2421,9 +3515,11 @@
                         "online"
                     );
 
+
                     connection.classList.remove(
                         "offline"
                     );
+
 
                     connectionText.textContent =
                         "ONLINE";
@@ -2442,9 +3538,11 @@
                     "online"
                 );
 
+
                 connection.classList.add(
                     "offline"
                 );
+
 
                 connectionText.textContent =
                     "OFFLINE";
@@ -2454,16 +3552,13 @@
         }
 
 
+
         /* =========================================================
            STARTUP
-        ========================================================== */
+        ========================================================= */
 
         checkConnection();
 
-
-        /* =========================================================
-           CONNECTION REFRESH
-        ========================================================== */
 
         setInterval(
             checkConnection,
@@ -2471,33 +3566,27 @@
         );
 
 
-        /* =========================================================
-           INITIAL STATE
-        ========================================================== */
-
         currentMode =
             "NORMAL";
+
 
         statusText.textContent =
             "EON ONLINE";
 
 
+
         /* =========================================================
-           KEYBOARD SHORTCUT
-        ========================================================== */
+           SPACEBAR VOICE
+        ========================================================= */
 
         document.addEventListener(
             "keydown",
             event => {
 
-                /*
-                 * Spacebar starts voice recognition
-                 * only when the user isn't typing.
-                 */
-
                 if (
                     event.code ===
                     "Space" &&
+
                     document.activeElement !==
                     commandInput
                 ) {
@@ -2514,4 +3603,5 @@
     </script>
 
 </body>
+
 </html>
