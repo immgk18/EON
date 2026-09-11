@@ -1,17 +1,20 @@
 """
 EON AI Provider
 ===============
-Provider abstraction for EON's artificial intelligence layer.
+Provider abstraction for EON's AI layer.
 
-EON can use different AI backends without changing the Brain.
+Supports:
+- Text generation
+- Vision generation
+- Local Ollama-compatible models
 
-Current provider:
-- Local Ollama-compatible API
-
-Future providers can be added later.
+Future providers can be added without changing
+the EON Brain or Vision modules.
 """
 
+import base64
 import json
+
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
@@ -31,7 +34,6 @@ class AIProvider:
         self.last_error = None
 
     def connect(self):
-        """Check whether the provider is available."""
         return False
 
     def generate(
@@ -40,25 +42,44 @@ class AIProvider:
         temperature=0.7,
         max_tokens=2048
     ):
-        """Generate an AI response."""
+        raise NotImplementedError
+
+    def generate_vision(
+        self,
+        prompt,
+        image_base64,
+        temperature=0.7,
+        max_tokens=2048
+    ):
         raise NotImplementedError
 
     def status(self):
+
         return {
-            "provider": self.name,
-            "model": self.model,
-            "connected": self.connected,
-            "status": (
-                "ONLINE"
-                if self.connected
-                else "OFFLINE"
-            ),
+            "provider":
+                self.name,
+
+            "model":
+                self.model,
+
+            "connected":
+                self.connected,
+
+            "status":
+                (
+                    "ONLINE"
+                    if self.connected
+                    else "OFFLINE"
+                ),
+
+            "last_error":
+                self.last_error,
         }
 
 
 class LocalOllamaProvider(AIProvider):
     """
-    Local AI provider using an Ollama-compatible API.
+    Local AI provider using Ollama's API.
 
     Default endpoint:
     http://127.0.0.1:11434
@@ -173,7 +194,7 @@ class LocalOllamaProvider(AIProvider):
             return []
 
     # =========================================================
-    # MODEL SELECTION
+    # SET MODEL
     # =========================================================
 
     def set_model(
@@ -182,7 +203,6 @@ class LocalOllamaProvider(AIProvider):
     ):
 
         if not model:
-
             return False
 
         self.model = model.strip()
@@ -190,7 +210,7 @@ class LocalOllamaProvider(AIProvider):
         return True
 
     # =========================================================
-    # GENERATION
+    # TEXT GENERATION
     # =========================================================
 
     def generate(
@@ -235,31 +255,9 @@ class LocalOllamaProvider(AIProvider):
 
         try:
 
-            request = Request(
-
+            result = self._post(
                 self.generate_endpoint,
-
-                data=json.dumps(
-                    payload
-                ).encode("utf-8"),
-
-                headers={
-                    "Content-Type":
-                        "application/json"
-                },
-
-                method="POST",
-            )
-
-            with urlopen(
-                request,
-                timeout=120
-            ) as response:
-
-                data = response.read()
-
-            result = json.loads(
-                data.decode("utf-8")
+                payload
             )
 
             answer = (
@@ -282,18 +280,151 @@ class LocalOllamaProvider(AIProvider):
 
             return None
 
-        except (
-            URLError,
-            HTTPError,
-            TimeoutError,
-            OSError,
-            json.JSONDecodeError
-        ) as error:
+        except Exception as error:
 
             self.connected = False
             self.last_error = str(error)
 
             return None
+
+    # =========================================================
+    # VISION GENERATION
+    # =========================================================
+
+    def generate_vision(
+        self,
+        prompt,
+        image_base64,
+        temperature=0.7,
+        max_tokens=2048
+    ):
+        """
+        Send an image and prompt to a vision-capable
+        Ollama model.
+
+        image_base64 must contain the raw Base64
+        representation of the image.
+        """
+
+        if not prompt:
+
+            prompt = (
+                "Analyze this image and describe "
+                "the important information you can see."
+            )
+
+        if not image_base64:
+
+            self.last_error = (
+                "No image data supplied."
+            )
+
+            return None
+
+        if not self.model:
+
+            self.last_error = (
+                "No AI model configured."
+            )
+
+            return None
+
+        payload = {
+
+            "model":
+                self.model,
+
+            "prompt":
+                prompt,
+
+            "images": [
+                image_base64
+            ],
+
+            "stream":
+                False,
+
+            "options": {
+
+                "temperature":
+                    temperature,
+
+                "num_predict":
+                    max_tokens,
+            },
+        }
+
+        try:
+
+            result = self._post(
+                self.generate_endpoint,
+                payload
+            )
+
+            answer = (
+                result
+                .get("response", "")
+                .strip()
+            )
+
+            if answer:
+
+                self.connected = True
+                self.last_response = answer
+                self.last_error = None
+
+                return answer
+
+            self.last_error = (
+                "Vision model returned "
+                "an empty response."
+            )
+
+            return None
+
+        except Exception as error:
+
+            self.connected = False
+            self.last_error = str(error)
+
+            return None
+
+    # =========================================================
+    # HTTP POST
+    # =========================================================
+
+    def _post(
+        self,
+        url,
+        payload
+    ):
+
+        request = Request(
+
+            url,
+
+            data=json.dumps(
+                payload
+            ).encode("utf-8"),
+
+            headers={
+                "Content-Type":
+                    "application/json"
+            },
+
+            method="POST",
+        )
+
+        with urlopen(
+            request,
+            timeout=120
+        ) as response:
+
+            data = response.read()
+
+        return json.loads(
+            data.decode("utf-8")
+        )
 
     # =========================================================
     # STATUS
@@ -310,9 +441,6 @@ class LocalOllamaProvider(AIProvider):
 
             "available_models":
                 self.get_models(),
-
-            "last_error":
-                self.last_error,
         })
 
         return result
@@ -352,10 +480,7 @@ class AIProviderManager:
         provider
     ):
 
-        if not name:
-            return False
-
-        if provider is None:
+        if not name or provider is None:
             return False
 
         self.providers[
@@ -404,13 +529,12 @@ class AIProviderManager:
     def connect(self):
 
         if self.active_provider is None:
-
             return False
 
         return self.active_provider.connect()
 
     # =========================================================
-    # GENERATE
+    # TEXT GENERATION
     # =========================================================
 
     def generate(
@@ -421,11 +545,32 @@ class AIProviderManager:
     ):
 
         if self.active_provider is None:
-
             return None
 
         return self.active_provider.generate(
             prompt,
+            temperature,
+            max_tokens
+        )
+
+    # =========================================================
+    # VISION GENERATION
+    # =========================================================
+
+    def generate_vision(
+        self,
+        prompt,
+        image_base64,
+        temperature=0.7,
+        max_tokens=2048
+    ):
+
+        if self.active_provider is None:
+            return None
+
+        return self.active_provider.generate_vision(
+            prompt,
+            image_base64,
             temperature,
             max_tokens
         )
