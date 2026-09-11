@@ -1,130 +1,485 @@
 """
-EON Agents
+EON Memory
 ==========
-Multi-agent coordination layer for EON.
+Persistent intelligent memory system using SQLite.
+
+Memory types:
+- Preference
+- Project
+- Fact
+- Instruction
+- General
+
+The system supports:
+- Saving memories
+- Searching memories
+- Retrieving recent memories
+- Categorization
+- Updating memories
+- Forgetting individual memories
+- Clearing memories
 """
 
 
-class Agent:
-    """Represents a specialized EON agent."""
+import sqlite3
+from datetime import datetime
 
-    def __init__(self, name, role, description=""):
-        self.name = name
-        self.role = role
-        self.description = description
-        self.status = "IDLE"
 
-    def execute(self, task):
-        """Execute an assigned task."""
+class Memory:
+    """Persistent memory manager for EON."""
 
-        if not task:
-            return "No task was provided."
+    VALID_CATEGORIES = {
+        "preference",
+        "project",
+        "fact",
+        "instruction",
+        "general",
+    }
 
-        self.status = "WORKING"
+    def __init__(self, database="eon.db"):
 
-        result = (
-            f"{self.name} is handling the task: "
-            f"{task}"
+        self.database = database
+
+        self._initialize()
+
+    # =========================================================
+    # DATABASE CONNECTION
+    # =========================================================
+
+    def _connect(self):
+
+        return sqlite3.connect(
+            self.database
         )
 
-        self.status = "COMPLETED"
+    # =========================================================
+    # INITIALIZE DATABASE
+    # =========================================================
+
+    def _initialize(self):
+
+        connection = self._connect()
+        cursor = connection.cursor()
+
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS memories (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                category TEXT NOT NULL,
+                content TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                updated_at TEXT
+            )
+        """)
+
+        connection.commit()
+        connection.close()
+
+    # =========================================================
+    # SAVE MEMORY
+    # =========================================================
+
+    def remember(
+        self,
+        content,
+        category="general"
+    ):
+        """Store a new long-term memory."""
+
+        if not content:
+            return False
+
+        category = (
+            category.lower().strip()
+        )
+
+        if category not in self.VALID_CATEGORIES:
+
+            category = "general"
+
+        now = datetime.now().isoformat()
+
+        connection = self._connect()
+        cursor = connection.cursor()
+
+        cursor.execute(
+            """
+            INSERT INTO memories
+            (
+                category,
+                content,
+                created_at,
+                updated_at
+            )
+            VALUES (?, ?, ?, ?)
+            """,
+            (
+                category,
+                content.strip(),
+                now,
+                now,
+            )
+        )
+
+        connection.commit()
+        connection.close()
+
+        return True
+
+    # =========================================================
+    # SEARCH MEMORY
+    # =========================================================
+
+    def recall(
+        self,
+        keyword=None,
+        category=None,
+        limit=10
+    ):
+        """Retrieve relevant memories."""
+
+        connection = self._connect()
+        cursor = connection.cursor()
+
+        if keyword and category:
+
+            cursor.execute(
+                """
+                SELECT
+                    id,
+                    category,
+                    content,
+                    created_at,
+                    updated_at
+                FROM memories
+                WHERE content LIKE ?
+                AND category = ?
+                ORDER BY id DESC
+                LIMIT ?
+                """,
+                (
+                    f"%{keyword}%",
+                    category,
+                    limit,
+                )
+            )
+
+        elif keyword:
+
+            cursor.execute(
+                """
+                SELECT
+                    id,
+                    category,
+                    content,
+                    created_at,
+                    updated_at
+                FROM memories
+                WHERE content LIKE ?
+                ORDER BY id DESC
+                LIMIT ?
+                """,
+                (
+                    f"%{keyword}%",
+                    limit,
+                )
+            )
+
+        elif category:
+
+            cursor.execute(
+                """
+                SELECT
+                    id,
+                    category,
+                    content,
+                    created_at,
+                    updated_at
+                FROM memories
+                WHERE category = ?
+                ORDER BY id DESC
+                LIMIT ?
+                """,
+                (
+                    category,
+                    limit,
+                )
+            )
+
+        else:
+
+            cursor.execute(
+                """
+                SELECT
+                    id,
+                    category,
+                    content,
+                    created_at,
+                    updated_at
+                FROM memories
+                ORDER BY id DESC
+                LIMIT ?
+                """,
+                (
+                    limit,
+                )
+            )
+
+        results = cursor.fetchall()
+
+        connection.close()
+
+        return results
+
+    # =========================================================
+    # RELEVANT MEMORY
+    # =========================================================
+
+    def relevant(
+        self,
+        query,
+        limit=5
+    ):
+        """
+        Find memories relevant to a query.
+
+        A lightweight keyword-based retrieval system
+        is used for now. Semantic/vector retrieval can
+        be added later.
+        """
+
+        if not query:
+            return []
+
+        words = [
+            word.strip(
+                ".,!?;:"
+            ).lower()
+            for word in query.split()
+        ]
+
+        words = [
+            word
+            for word in words
+            if len(word) > 2
+        ]
+
+        if not words:
+            return []
+
+        results = []
+
+        for word in words:
+
+            memories = self.recall(
+                keyword=word,
+                limit=limit
+            )
+
+            for memory in memories:
+
+                if memory not in results:
+
+                    results.append(
+                        memory
+                    )
+
+                if len(results) >= limit:
+
+                    return results
+
+        return results
+
+    # =========================================================
+    # GET MEMORY
+    # =========================================================
+
+    def get(self, memory_id):
+
+        connection = self._connect()
+        cursor = connection.cursor()
+
+        cursor.execute(
+            """
+            SELECT
+                id,
+                category,
+                content,
+                created_at,
+                updated_at
+            FROM memories
+            WHERE id = ?
+            """,
+            (
+                memory_id,
+            )
+        )
+
+        result = cursor.fetchone()
+
+        connection.close()
 
         return result
 
+    # =========================================================
+    # UPDATE MEMORY
+    # =========================================================
 
-class AgentManager:
-    """Manages EON's specialized agents."""
+    def update(
+        self,
+        memory_id,
+        content=None,
+        category=None
+    ):
+        """Update an existing memory."""
 
-    def __init__(self):
-        self.agents = {}
-
-        self.register_default_agents()
-
-    def register_default_agents(self):
-        """Create EON's initial specialized agents."""
-
-        self.register(
-            "researcher",
-            "Research Agent",
-            "Finds and organizes information."
+        existing = self.get(
+            memory_id
         )
 
-        self.register(
-            "coder",
-            "Coding Agent",
-            "Helps design, write, and analyze code."
-        )
-
-        self.register(
-            "analyst",
-            "Analysis Agent",
-            "Analyzes information and identifies patterns."
-        )
-
-        self.register(
-            "planner",
-            "Planning Agent",
-            "Breaks large goals into manageable tasks."
-        )
-
-        self.register(
-            "document",
-            "Document Agent",
-            "Works with documents and structured information."
-        )
-
-    def register(self, agent_id, role, description=""):
-        """Register a new agent."""
-
-        if agent_id in self.agents:
+        if existing is None:
             return False
 
-        self.agents[agent_id] = Agent(
-            name=agent_id,
-            role=role,
-            description=description
+        new_content = (
+            content
+            if content
+            else existing[2]
         )
 
-        return True
+        new_category = (
+            category
+            if category
+            else existing[1]
+        )
 
-    def remove(self, agent_id):
-        """Remove an agent."""
+        new_category = (
+            new_category
+            .lower()
+            .strip()
+        )
 
-        if agent_id not in self.agents:
-            return False
+        if new_category not in self.VALID_CATEGORIES:
 
-        del self.agents[agent_id]
-        return True
+            new_category = "general"
 
-    def get(self, agent_id):
-        """Get an agent by ID."""
+        connection = self._connect()
+        cursor = connection.cursor()
 
-        return self.agents.get(agent_id)
+        cursor.execute(
+            """
+            UPDATE memories
+            SET
+                category = ?,
+                content = ?,
+                updated_at = ?
+            WHERE id = ?
+            """,
+            (
+                new_category,
+                new_content.strip(),
+                datetime.now().isoformat(),
+                memory_id,
+            )
+        )
 
-    def assign(self, agent_id, task):
-        """Assign a task to a specific agent."""
+        connection.commit()
 
-        agent = self.get(agent_id)
+        updated = (
+            cursor.rowcount > 0
+        )
 
-        if agent is None:
-            return f"Agent '{agent_id}' was not found."
+        connection.close()
 
-        return agent.execute(task)
+        return updated
 
-    def list_agents(self):
-        """Return all registered agents."""
+    # =========================================================
+    # FORGET ONE MEMORY
+    # =========================================================
 
-        return list(self.agents.values())
+    def forget(self, memory_id):
 
-    def get_agent_names(self):
-        """Return all agent IDs."""
+        connection = self._connect()
+        cursor = connection.cursor()
 
-        return list(self.agents.keys())
+        cursor.execute(
+            """
+            DELETE FROM memories
+            WHERE id = ?
+            """,
+            (
+                memory_id,
+            )
+        )
+
+        deleted = (
+            cursor.rowcount > 0
+        )
+
+        connection.commit()
+        connection.close()
+
+        return deleted
+
+    # =========================================================
+    # CLEAR MEMORY
+    # =========================================================
+
+    def clear(self):
+
+        connection = self._connect()
+        cursor = connection.cursor()
+
+        cursor.execute(
+            "DELETE FROM memories"
+        )
+
+        connection.commit()
+        connection.close()
+
+    # =========================================================
+    # COUNT
+    # =========================================================
+
+    def count(self):
+
+        connection = self._connect()
+        cursor = connection.cursor()
+
+        cursor.execute(
+            "SELECT COUNT(*) FROM memories"
+        )
+
+        result = cursor.fetchone()[0]
+
+        connection.close()
+
+        return result
+
+    # =========================================================
+    # CATEGORIES
+    # =========================================================
+
+    def categories(self):
+
+        return sorted(
+            self.VALID_CATEGORIES
+        )
+
+    # =========================================================
+    # STATUS
+    # =========================================================
 
     def status(self):
-        """Return the status of all agents."""
 
         return {
-            agent_id: agent.status
-            for agent_id, agent in self.agents.items()
+            "database":
+                self.database,
+
+            "memories":
+                self.count(),
+
+            "categories":
+                self.categories(),
+
+            "status":
+                "ONLINE",
         }
