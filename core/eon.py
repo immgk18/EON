@@ -19,7 +19,7 @@ VOICE / UI
   ↓
 OUTPUT
 """
-
+from diagnostics import Diagnostics
 from core.brain import Brain
 from core.context import Context
 from core.router import Router
